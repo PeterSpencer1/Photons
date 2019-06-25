@@ -39,19 +39,6 @@ def writeTree(inputFile):
 
         print('######## Creating branches ########')
 
-        #Create a new ROOT fill
-        output = ROOT.TFile('Photons.root', 'RECREATE')
-
-        #Create a new ROOT TTree
-        eventTree = ROOT.TTree('eventTree', 'List of different variables in events from VBF_HToInvisible dataset')
-
-        eventTree.Branch('nPhoton', nPhoton, 'nPhoton/I')
-        eventTree.Branch('photonPhi', photonPhi, 'photonPhi[nPhoton]/F')
-        eventTree.Branch('photonPt', photonPt, 'photonPt[nPhoton]/F')
-        eventTree.Branch('photonEta', photonEta, 'photonEta[nPhoton]/F')
-
-        photons, photonLabel = Handle('std::vector<pat::Photon>'), 'slimmedPhotons'
-
         events = Events(inputFile)
 
         print('Took the input file successfully')
