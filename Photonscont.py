@@ -60,7 +60,7 @@ def writeTree(inputFile):
                 eventTree.Fill()
 
         #Save the output root file
-output.Write()
+        output.Write()
 
 dirname = '/cms/data/store/user/dsperka/lowmassdiphoton/ggh_m10'
 
