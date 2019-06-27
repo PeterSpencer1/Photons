@@ -87,6 +87,7 @@ def readTree(inputFile):
         photon_pt.Draw()
         photon_eta.Draw()
         invariant_mass.Draw()
+        invariant_massg.Draw()
         f.Write()
 
 if __name__ == '__main__':
