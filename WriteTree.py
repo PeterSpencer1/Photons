@@ -27,6 +27,11 @@ photonEnergy = array('f', np.zeros(max_num, dtype=float))
 photonPx = array('f', np.zeros(max_num, dtype=float))
 photonPy = array('f', np.zeros(max_num, dtype=float))
 photonPz = array('f', np.zeros(max_num, dtype=float))
+photonEnergyg = array('f', np.zeros(max_num, dtype=float))
+photonPxg = array('f', np.zeros(max_num, dtype=float))
+photonPyg = array('f', np.zeros(max_num, dtype=float))
+photonPzg = array('f', np.zeros(max_num, dtype=float))
+numPhotons_gen = array('i', [0])
 
 # load FWlite python libraries
 from DataFormats.FWLite import Handle, Events
@@ -51,6 +56,11 @@ eventTree.Branch('photonEnergy', photonEnergy, 'photonEnergy[nPhoton]/F')
 eventTree.Branch('photonPx', photonPx, 'photonPx[nPhoton]/F')
 eventTree.Branch('photonPy', photonPy, 'photonPy[nPhoton]/F')
 eventTree.Branch('photonPz', photonPz, 'photonPz[nPhoton]/F')
+eventTree.Branch('photonEnergyg', photonEnergyg, 'photonEnergyg[nParticles]/F')
+eventTree.Branch('photonPxg', photonPxg, 'photonPxg[nParticles]/F')
+eventTree.Branch('photonPyg', photonPyg, 'photonPyg[nParticles]/F')
+eventTree.Branch('photonPzg', photonPzg, 'photonPzg[nParticles]/F')
+eventTree.Branch('numPhotons_gen', numPhotons_gen, 'numPhotons_gen/I')
 
 photons, photonLabel = Handle('std::vector<pat::Photon>'), 'slimmedPhotons'
 genParticles, genParticlesLabel = Handle('std::vector<reco::GenParticle>'), 'prunedGenParticles'
@@ -71,6 +81,8 @@ def writeTree(inputFile):
                 event.getByLabel(genParticlesLabel, genParticles)
                 event.getByLabel(triggerBitLabel, triggerBits)
 
+                numPhotons_gen[0] = 0
+                
                 photons_ = photons.product()
                 genParticles_ = genParticles.product()
 
@@ -83,6 +95,15 @@ def writeTree(inputFile):
                         particleStatus[i] = prt.status()
                         nMothers[i] = prt.numberOfMothers()
 
+                        if prt.pdgId()==22:
+
+                                photonEnergyg[i] = prt.energy()
+                                photonPxg[i] = prt.px()
+                                photonPyg[i] = prt.py()
+                                photonPzg[i] = prt.pz()
+                                numPhotons_gen[0] += 1
+                                #print('in if loop')
+                                
                         if i > 1:
 
                                 mothers[i] = prt.mother(0).pdgId()
