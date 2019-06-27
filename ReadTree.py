@@ -1,4 +1,5 @@
 import ROOT
+import math
 
 def readTree(inputFile):
 
@@ -24,6 +25,10 @@ def readTree(inputFile):
         invariant_mass.GetXaxis().SetTitle('Mass (GeV)')
         invariant_mass.GetYaxis().SetTitle('Number of Events')
 
+        invariant_massg=ROOT.TH1F('invariantmassg', 'Invariant Mass Of 2 Photons (Gen)', 50, 7, 13)
+        invariant_massg.GetXaxis().SetTitle('Mass (GeV)')
+        invariant_massg.GetYaxis().SetTitle('Number of Events')
+        
         event_count_before = 0
         event_count_after = 0
 
@@ -38,7 +43,13 @@ def readTree(inputFile):
                 photonPy = event.photonPy
                 photonPz = event.photonPz
                 photonEnergy = event.photonEnergy
-
+                photonPxg = event.photonPxg
+                photonPyg = event.photonPyg
+                photonPzg = event.photonPzg
+                photonEnergyg = event.photonEnergyg
+                pdgId = event.pdgId
+                numPhotons_gen = event.numPhotons_gen
+                
                 if nPhoton==2:
 
                         px = photonPx[0] + photonPx[1]
@@ -48,6 +59,11 @@ def readTree(inputFile):
                         invariantMass = energy**2 - px**2 - py**2 - pz**2
                         invariant_mass.Fill(invariantMass)
 
+                photonEnergygen = [value for value in photonEnergyg if value != 0]
+                photonPxgen = [value for value in photonPxg if value != 0]
+                photonPygen = [value for value in photonPyg if value != 0]
+                photonPzgen = [value for value in photonPzg if value != 0]
+                
                 num_photons.Fill(nPhoton)
 
                 for Phi in photonPhi:
@@ -61,7 +77,11 @@ def readTree(inputFile):
                 for Eta in photonEta:
 
                         photon_eta.Fill(Eta)
-
+                        
+        print(photonEnergygen)
+        print(photonEnergyg)
+        print(numPhotons_gen)
+                        
         num_photons.Draw()
         photon_phi.Draw()
         photon_pt.Draw()
