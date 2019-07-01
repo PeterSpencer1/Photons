@@ -1,5 +1,6 @@
 import ROOT
 import math
+from array import array
 
 def readTree(inputFile):
 
@@ -83,6 +84,14 @@ def readTree(inputFile):
         event_count_before = 0
         event_count_after = 0
 
+        counterDictBef = {}
+        counterDictAft = {}
+
+        for pt in range(5, 65, 3):
+
+                counterDictBef[pt] = 0
+                counterDictAft[pt] = 0
+        
         for event in f.eventTree:
 
                 #reading the branches of eventTree             
@@ -115,6 +124,13 @@ def readTree(inputFile):
                 matchingPhotonsPt = []
                 matchingPhotonsEnergy = []
                 matchingPhotons = 0
+                
+                for pt in range(5, 65, 3):
+                        if len(photonPt) != 0:
+                                if pt < photonPt[0] < pt+3:
+                                        counterDictBef[pt] += 1
+                                        if hltPhoton20 == 1:
+                                                counterDictAft[pt] += 1
                 
                 for i in range(numPhotons_gen):
 
@@ -220,12 +236,27 @@ def readTree(inputFile):
                 for Eta in l1photonEta:
 
                         l1photon_eta.Fill(Eta)
-                        
-                        
-        #print(photonEnergygen)
-        #print(photonEnergyg)
-        #print(numPhotons_gen)
-                        
+         
+        ratio = []
+
+        for i in counterDictBef.keys():
+
+                ratio.append(float(counterDictAft[i])/counterDictBef[i])
+
+        x_axis = []
+
+        for num in range(5, 65, 3):
+
+                x_axis.append(float(num))
+
+        ratio = array('f', ratio)
+        x_axis = array('f', x_axis)
+
+        n = len(x_axis)
+        ptAccept=ROOT.TGraph(n, x_axis, ratio)
+        ptAccept.Draw('AC')
+        ptAccept.Write('ptAccept')
+        
         num_photons.Draw()
         photon_phi.Draw()
         photon_pt.Draw()
