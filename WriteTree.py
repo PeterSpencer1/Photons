@@ -32,6 +32,22 @@ photonPxg = array('f', np.zeros(max_num, dtype=float))
 photonPyg = array('f', np.zeros(max_num, dtype=float))
 photonPzg = array('f', np.zeros(max_num, dtype=float))
 numPhotons_gen = array('i', [0])
+photonEtag = array('f', np.zeros(max_num, dtype=float))
+photonPhig = array('f', np.zeros(max_num, dtype=float))
+photonPtg = array('f', np.zeros(max_num, dtype=float))
+nPhoton_L1 = array('i', [0])
+l1photonPt = array('f', np.zeros(max_num, dtype=float))
+l1photonPhi = array('f', np.zeros(max_num, dtype=float))
+l1photonEta = array('f', np.zeros(max_num, dtype=float))
+l1photonEnergy = array('f', np.zeros(max_num, dtype=float))
+l1photonPx = array('f', np.zeros(max_num, dtype=float))
+l1photonPy = array('f', np.zeros(max_num, dtype=float))
+l1photonPz = array('f', np.zeros(max_num, dtype=float))
+hltPhoton20 = array('i', [0])
+hltPhoton33 = array('i', [0])
+hltP20H = array('i', [0])
+hltP30H = array('i', [0])
+hltDP30 = array('i', [0])
 
 # load FWlite python libraries
 from DataFormats.FWLite import Handle, Events
@@ -61,10 +77,32 @@ eventTree.Branch('photonPxg', photonPxg, 'photonPxg[nParticles]/F')
 eventTree.Branch('photonPyg', photonPyg, 'photonPyg[nParticles]/F')
 eventTree.Branch('photonPzg', photonPzg, 'photonPzg[nParticles]/F')
 eventTree.Branch('numPhotons_gen', numPhotons_gen, 'numPhotons_gen/I')
+eventTree.Branch('numPhotons_gen', numPhotons_gen, 'numPhotons_gen/I')
+eventTree.Branch('photonEnergyg', photonEnergyg, 'photonEnergyg[numPhotons_gen]/F')
+eventTree.Branch('photonPxg', photonPxg, 'photonPxg[numPhotons_gen]/F')
+eventTree.Branch('photonPyg', photonPyg, 'photonPyg[numPhotons_gen]/F')
+eventTree.Branch('photonPzg', photonPzg, 'photonPzg[numPhotons_gen]/F')
+eventTree.Branch('photonEtag', photonEtag, 'photonEtag[numPhotons_gen]/F')
+eventTree.Branch('photonPhig', photonPhig, 'photonPhig[numPhotons_gen]/F')
+eventTree.Branch('photonPtg', photonPtg, 'photonPtg[numPhotons_gen]/F')
+eventTree.Branch('nPhoton_L1', nPhoton_L1, 'nPhoton_L1/I')
+eventTree.Branch('l1photonPhi', l1photonPhi, 'l1photonPhi[nPhoton_L1]/F')
+eventTree.Branch('l1photonPt', l1photonPt, 'l1photonPt[nPhoton_L1]/F')
+eventTree.Branch('l1photonEta', l1photonEta, 'l1photonEta[nPhoton_L1]/F')
+eventTree.Branch('l1photonEnergy', l1photonEnergy, 'l1photonEnergy[nPhoton_L1]/F')
+eventTree.Branch('l1photonPx', l1photonPx, 'l1photonPx[nPhoton_L1]/F')
+eventTree.Branch('l1photonPy', l1photonPy, 'l1photonPy[nPhoton_L1]/F')
+eventTree.Branch('l1photonPz', l1photonPz, 'l1photonPz[nPhoton_L1]/F')
+eventTree.Branch('hltPhoton20', hltPhoton20, 'hltPhoton20/I')
+eventTree.Branch('hltPhoton33', hltPhoton33, 'hltPhoton33/I')
+eventTree.Branch('hltP20H', hltP20H, 'hltP20H/I')
+eventTree.Branch('hltP30H', hltP30H, 'hltP30H/I')
+eventTree.Branch('hltDP30', hltDP30, 'hltDP30/I')
 
 photons, photonLabel = Handle('std::vector<pat::Photon>'), 'slimmedPhotons'
 genParticles, genParticlesLabel = Handle('std::vector<reco::GenParticle>'), 'prunedGenParticles'
 triggerBits, triggerBitLabel = Handle("edm::TriggerResults"), ("TriggerResults","","HLT")
+photonL1, photonL1Label = Handle("BXVector<l1t::EGamma>"), "caloStage2Digis:EGamma"
 
 
 def writeTree(inputFile):
@@ -80,15 +118,51 @@ def writeTree(inputFile):
                 event.getByLabel(photonLabel, photons)
                 event.getByLabel(genParticlesLabel, genParticles)
                 event.getByLabel(triggerBitLabel, triggerBits)
-
+                event.getByLabel(photonL1Label, photonL1)
+                
                 numPhotons_gen[0] = 0
                 
+                triggerBits_ = triggerBits.product()
                 photons_ = photons.product()
                 genParticles_ = genParticles.product()
 
                 nPhoton[0] = len(photons_)
                 nParticles[0] = len(genParticles_)
 
+                names = event.object().triggerNames(triggerBits_)
+
+                for i in range(triggerBits_.size()):
+
+                        if names.triggerNames()[i]=='HLT_Photon20_v2':
+                                if triggerBits_.accept(i):
+                                        hltPhoton20[0] = 1
+                                else:
+                                        hltPhoton20[0] = 0
+
+                        if names.triggerNames()[i]=='HLT_Photon33_v5':
+                                if triggerBits_.accept(i):
+                                        hltPhoton33[0] = 1
+                                else:
+                                        hltPhoton33[0] = 0
+
+                        if names.triggerNames()[i]=='HLT_Photon20_HoverELoose_v10':
+                                if triggerBits_.accept(i):
+                                        hltP20H[0] = 1
+                                else:
+                                        hltP20H[0] = 0
+
+                        if names.triggerNames()[i]=='HLT_Photon30_HoverELoose_v10':
+                                if triggerBits_.accept(i):
+                                        hltP30H[0] = 1
+                                else:
+                                        hltP30H[0] = 0
+
+                        if names.triggerNames()[i]=='HLT_Diphoton30_18_R9IdL_AND_HE_AND_IsoCaloId_NoPixelVeto_v2':
+                                if triggerBits_.accept(i):
+                                        hltDP30[0] = 1
+                                else:
+                                        hltDP30[0] = 0
+                                        
                 for i, prt in enumerate(genParticles_):
 
                         pdgId[i] = prt.pdgId()
@@ -118,6 +192,24 @@ def writeTree(inputFile):
                         photonPy[i] = ph.py()
                         photonPz[i] = ph.pz()
 
+                bxVector_photon = photonL1.product()
+
+                bx=0
+
+                nPhoton_L1[0] = bxVector_photon.size(bx)
+
+                for i in range(bxVector_photon.size(bx)):
+
+                        photon = bxVector_photon.at(bx, i)
+
+                        l1photonPt[i] = photon.pt()
+                        l1photonEta[i] = photon.eta()
+                        l1photonPhi[i] = photon.phi()
+                        l1photonEnergy[i] = photon.energy()
+                        l1photonPx[i] = photon.px()
+                        l1photonPy[i] = photon.py()
+                        l1photonPz[i] = photon.pz()
+                        
                 eventTree.Fill()
 
         print('Number of trigger paths: %d' % triggerBits.product().size())
@@ -128,7 +220,9 @@ def writeTree(inputFile):
 
                 print('Trigger ', names.triggerNames()[i], ('PASS' if triggerBits.product().accept(i) else 'FAIL'))
 
-dirname = '/cms/data/store/user/dsperka/lowmassdiphoton/ggh_m10'
+#/cms/data/store/user/dsperka/lowmassdiphoton/ggh_m10
+
+dirname = '/home/peterspencer/CMSWork/ggh_m30'
 
 if __name__ == '__main__':
 
