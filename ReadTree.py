@@ -81,6 +81,38 @@ def readTree(inputFile):
         num_matchingPhotons.GetXaxis().SetTitle('Number of Matching Photons')
         num_matchingPhotons.GetYaxis().SetTitle('Number Of Events')
 
+        recoMatchingPhotons_Pt=ROOT.TH1F('recoMatchingPhotons_Pt','Pt of Matching Photons (Reco vs Gen)', 50, 0, 50.)
+        recoMatchingPhotons_Pt.GetXaxis().SetTitle('Pt')
+        recoMatchingPhotons_Pt.GetYaxis().SetTitle('Number of Events')
+
+        recoMatchingPhotons_Energy=ROOT.TH1F('recoMatchingPhotonsEnergy','Energy of Matching Photons (Reco vs Gen)', 50, 0, 40)
+        recoMatchingPhotons_Energy.GetXaxis().SetTitle('Energy')
+        recoMatchingPhotons_Energy.GetYaxis().SetTitle('Number of Events')
+
+        recoNum_matchingPhotons=ROOT.TH1F('recoNummatchingPhotons', 'Number of Matching Photons (Reco vs Gen)', 10, 0, 10)
+        recoNum_matchingPhotons.GetXaxis().SetTitle('Number of Matching Photons')
+        recoNum_matchingPhotons.GetYaxis().SetTitle('Number Of Events')
+
+        etaSpecial=ROOT.TH1F('etaSpecial', 'Difference in Eta Divided By Gen', 50, -2, 2)
+        etaSpecial.GetXaxis().SetTitle('Eta Difference')
+        etaSpecial.GetYaxis().SetTitle('Number Of Events')
+
+        phiSpecial=ROOT.TH1F('phiSpecial', 'Difference in Phi Divided By Gen', 50, -2, 2)
+        phiSpecial.GetXaxis().SetTitle('Phi Difference')
+        phiSpecial.GetYaxis().SetTitle('Number Of Events')
+
+        energySpecial=ROOT.TH1F('energySpecial', 'Difference in Energy Divided By Gen', 50, -2, 3)
+        energySpecial.GetXaxis().SetTitle('Energy Difference')
+        energySpecial.GetYaxis().SetTitle('Number Of Events')
+
+        delta_r=ROOT.TH1F('deltar', 'Delta R', 20, 0, 10)
+        delta_r.GetXaxis().SetTitle('Delta R')
+        delta_r.GetYaxis().SetTitle('Number Of Events')
+
+        min_r=ROOT.TH1F('minr', 'Lowest Value of Delta R', 40, 0, 10)
+        min_r.GetXaxis().SetTitle('Delta R')
+        min_r.GetYaxis().SetTitle('Number Of Events')
+
         event_count_before = 0
         event_count_after = 0
 
@@ -120,10 +152,13 @@ def readTree(inputFile):
                 l1photonPy = event.l1photonPy
                 l1photonPz = event.l1photonPz
                 l1photonEnergy = event.l1photonEnergy
+                hltPhoton20 = event.hltPhoton20
+                hltPhoton33 = event.hltPhoton33
                 
                 matchingPhotonsPt = []
                 matchingPhotonsEnergy = []
                 matchingPhotons = 0
+                index = []
                 
                 for pt in range(5, 65, 3):
                         if len(photonPt) != 0:
@@ -138,26 +173,96 @@ def readTree(inputFile):
 
                                 eta_diff = l1photonEta[j] - photonEtag[i]
                                 phi_diff = l1photonPhi[j] - photonPhig[i]
+                                energy_diff = l1photonEnergy[j] - photonEnergyg[i]
                                 deltaR = math.sqrt(eta_diff**2 + phi_diff**2)
+                                delta_r.Fill(deltaR)
 
                                 if deltaR < .5:
 
                                         matchingPhotons += 1
+                                        index.append(j)
+                                        eta_difference = eta_diff/photonEtag[i]
+                                        etaSpecial.Fill(eta_difference)
+                                        phi_difference = phi_diff/photonPhig[i]
+                                        phiSpecial.Fill(phi_difference)
+                                        energy_difference = energy_diff/photonEnergyg[i]
+                                        energySpecial.Fill(energy_difference)
+                                        #delta_r.Fill(deltaR)
+                                        
+                if matchingPhotons==0:
 
-                                if matchingPhotons==2:
+                        for h in range(nPhoton_L1):
 
-                                        matchingPhotonsPt.append(l1photonPt[j])
-                                        matchingPhotonsEnergy.append(l1photonEnergy[j])
+                                delta_R = []
 
-                                for mEnergy in matchingPhotonsEnergy:
+                                for u in range(numPhotons_gen):
 
-                                        matchingPhotons_Energy.Fill(mEnergy)
+                                        if photonPtg[u] < 2: continue
 
-                                for mPt in matchingPhotonsPt:
+                                        eta_diff = l1photonEta[h] - photonEtag[u]
+                                        phi_diff = l1photonPhi[h] - photonPhig[u]
+                                        deltaR = math.sqrt(eta_diff**2 + phi_diff**2)
+                                        delta_R.append(deltaR)
 
-                                        matchingPhotons_Pt.Fill(mPt)
+                                if len(delta_R) != 0:
+
+                                        r = min(delta_R)
+
+                                        min_r.Fill(r)
+                                       
+                if matchingPhotons==2:
+
+                        for j in index:
+
+                                matchingPhotonsPt.append(l1photonPt[j])
+                                matchingPhotonsEnergy.append(l1photonEnergy[j])
+
+
+                for mEnergy in matchingPhotonsEnergy:
+
+                        matchingPhotons_Energy.Fill(mEnergy)
+
+                for mPt in matchingPhotonsPt:
+
+                        matchingPhotons_Pt.Fill(mPt)
 
                 num_matchingPhotons.Fill(matchingPhotons)
+                
+                recoMatchingPhotonsPt = []
+                recoMatchingPhotonsEnergy = []
+                recoMatchingPhotons = 0
+                recoIndex = []
+                
+                for o in range(numPhotons_gen):
+
+                        for k in range(nPhoton):
+
+                                eta_diff = photonEta[k] - photonEtag[o]
+                                phi_diff = photonPhi[k] - photonPhig[o]
+                                deltaR = math.sqrt(eta_diff**2 + phi_diff**2)
+
+                                if deltaR < .5:
+
+                                        recoMatchingPhotons += 1
+                                        recoIndex.append(k)
+
+                if recoMatchingPhotons==2:
+
+                        for k in recoIndex:
+
+                                recoMatchingPhotonsPt.append(photonPt[k])
+                                recoMatchingPhotonsEnergy.append(photonEnergy[k])
+
+
+                for rmEnergy in recoMatchingPhotonsEnergy:
+
+                        recoMatchingPhotons_Energy.Fill(rmEnergy)
+
+                for rmPt in recoMatchingPhotonsPt:
+
+                        recoMatchingPhotons_Pt.Fill(rmPt)
+
+                recoNum_matchingPhotons.Fill(recoMatchingPhotons)
                 
                 if nPhoton==2:
 
@@ -225,17 +330,17 @@ def readTree(inputFile):
 
                         photon_eta.Fill(Eta)
                         
-                for Phi in l1photonPhi:
+                for PhiL1 in l1photonPhi:
 
-                        l1photon_phi.Fill(Phi)
+                        l1photon_phi.Fill(PhiL1)
 
-                for Pt in l1photonPt:
+                for PtL1 in l1photonPt:
 
-                        l1photon_pt.Fill(Pt)
+                        l1photon_pt.Fill(PtL1)
 
-                for Eta in l1photonEta:
+                for EtaL1 in l1photonEta:
 
-                        l1photon_eta.Fill(Eta)
+                        l1photon_eta.Fill(EtaL1)
          
         ratio = []
 
