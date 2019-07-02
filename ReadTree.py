@@ -113,16 +113,59 @@ def readTree(inputFile):
         min_r.GetXaxis().SetTitle('Delta R')
         min_r.GetYaxis().SetTitle('Number Of Events')
 
+        delta_reco=ROOT.TH1F('deltareco', 'Delta R (Reco)', 20, 0, 10)
+        delta_reco.GetXaxis().SetTitle('Delta R')
+        delta_reco.GetYaxis().SetTitle('Number Of Events')
+
+        min_reco=ROOT.TH1F('minreco', 'Lowest Value of Delta R (Reco)', 40, 0, 10)
+        min_reco.GetXaxis().SetTitle('Delta R')
+        min_reco.GetYaxis().SetTitle('Number Of Events')
+        
         event_count_before = 0
         event_count_after = 0
 
         counterDictBef = {}
         counterDictAft = {}
 
-        for pt in range(5, 65, 3):
+        counterDictBef20 = {}
+        counterDictAft20 = {}
 
-                counterDictBef[pt] = 0
-                counterDictAft[pt] = 0
+        for pt in range(5, 65):
+
+                counterDictBef20[pt] = 0
+                counterDictAft20[pt] = 0
+
+        counterDictBef33 = {}
+        counterDictAft33 = {}
+
+        for pt in range(5, 65):
+
+                counterDictBef33[pt] = 0
+                counterDictAft33[pt] = 0
+
+        counterDictBefP20 = {}
+        counterDictAftP20 = {}
+
+        for pt in range(5, 65):
+
+                counterDictBefP20[pt] = 0
+                counterDictAftP20[pt] = 0
+
+        counterDictBefP30 = {}
+        counterDictAftP30 = {}
+
+        for pt in range(5, 65):
+
+                counterDictBefP30[pt] = 0
+                counterDictAftP30[pt] = 0
+
+        counterDictBefDP30 = {}
+        counterDictAftDP30 = {}
+
+        for pt in range(5, 65):
+
+                counterDictBefDP30[pt] = 0
+                counterDictAftDP30[pt] = 0
         
         for event in f.eventTree:
 
@@ -154,18 +197,59 @@ def readTree(inputFile):
                 l1photonEnergy = event.l1photonEnergy
                 hltPhoton20 = event.hltPhoton20
                 hltPhoton33 = event.hltPhoton33
+                hltP20H = event.hltP20H
+                hltP30H = event.hltP30H
+                hltDP30 = event.hltDP30
                 
                 matchingPhotonsPt = []
                 matchingPhotonsEnergy = []
                 matchingPhotons = 0
                 index = []
                 
-                for pt in range(5, 65, 3):
+                for pt in range(5, 65):
+
                         if len(photonPt) != 0:
-                                if pt < photonPt[0] < pt+3:
-                                        counterDictBef[pt] += 1
+
+                                if pt < photonPt[0] < pt+1:
+                                        counterDictBef20[pt] += 1
                                         if hltPhoton20 == 1:
-                                                counterDictAft[pt] += 1
+                                                counterDictAft20[pt] += 1
+
+                for pt in range(5, 65):
+
+                        if len(photonPt) != 0:
+
+                                if pt < photonPt[0] < pt+1:
+                                        counterDictBef33[pt] += 1
+                                        if hltPhoton33 == 1:
+                                                counterDictAft33[pt] += 1
+
+                for pt in range(5, 65):
+
+                        if len(photonPt) != 0:
+
+                                if pt < photonPt[0] < pt+1:
+                                        counterDictBefP20[pt] += 1
+                                        if hltP20H == 1:
+                                                counterDictAftP20[pt] += 1
+
+                for pt in range(5, 65):
+
+                        if len(photonPt) != 0:
+
+                                if pt < photonPt[0] < pt+1:
+                                        counterDictBefP30[pt] += 1
+                                        if hltP30H == 1:
+                                                counterDictAftP30[pt] += 1
+
+                for pt in range(5, 65):
+
+                        if len(photonPt) != 0:
+
+                                if pt < photonPt[0] < pt+1:
+                                        counterDictBefDP30[pt] += 1
+                                        if hltDP30 == 1:
+                                                counterDictAftDP30[pt] += 1
                 
                 for i in range(numPhotons_gen):
 
@@ -240,12 +324,41 @@ def readTree(inputFile):
                                 eta_diff = photonEta[k] - photonEtag[o]
                                 phi_diff = photonPhi[k] - photonPhig[o]
                                 deltaR = math.sqrt(eta_diff**2 + phi_diff**2)
+                                energy_diff = photonEnergy[k] - photonEnergyg[o]
+                                delta_reco.Fill(deltaR)
 
                                 if deltaR < .5:
 
                                         recoMatchingPhotons += 1
                                         recoIndex.append(k)
+                                        eta_difference = eta_diff/photonEtag[o]
+                                        etaSpecialReco.Fill(eta_difference)
+                                        phi_difference = phi_diff/photonPhig[o]
+                                        phiSpecialReco.Fill(phi_difference)
+                                        energy_difference = energy_diff/photonEnergyg[o]
+                                        energySpecialReco.Fill(energy_difference)
 
+                if matchingPhotons==0:
+
+                        for h in range(nPhoton):
+
+                                delta_Reco = []
+
+                                for u in range(numPhotons_gen):
+
+                                        if photonPtg[u] < 2: continue
+
+                                        eta_diff = photonEta[h] - photonEtag[u]
+                                        phi_diff = photonPhi[h] - photonPhig[u]
+                                        deltaReco = math.sqrt(eta_diff**2 + phi_diff**2)
+                                        delta_Reco.append(deltaR)
+
+                                if len(delta_Reco) != 0:
+
+                                        r = min(delta_Reco)
+
+                                        min_reco.Fill(r)
+                                        
                 if recoMatchingPhotons==2:
 
                         for k in recoIndex:
@@ -272,6 +385,8 @@ def readTree(inputFile):
                         energy = photonEnergy[0] + photonEnergy[1]
                         invariantMass = energy**2 - px**2 - py**2 - pz**2
                         invariant_mass.Fill(invariantMass)
+                        etadifference = abs(photonEta[0] - photonEta[1])
+                        photon_etadiff.Fill(etadifference)
 
                 photonEnergygen = [value for value in photonEnergyg if value != 0]
                 photonPxgen = [value for value in photonPxg if value != 0]
@@ -342,25 +457,115 @@ def readTree(inputFile):
 
                         l1photon_eta.Fill(EtaL1)
          
-        ratio = []
+        ratio20 = []
 
-        for i in counterDictBef.keys():
+        for i in sorted(counterDictAft20.keys()):
 
-                ratio.append(float(counterDictAft[i])/counterDictBef[i])
+                ratio20.append(float(counterDictAft20[i])/counterDictBef20[i])
 
-        x_axis = []
+        x_axis20 = []
 
-        for num in range(5, 65, 3):
+        for num in range(5, 65):
 
-                x_axis.append(float(num))
+                x_axis20.append(float(num))
 
-        ratio = array('f', ratio)
-        x_axis = array('f', x_axis)
+        ratio20 = array('f', ratio20)
+        x_axis20 = array('f', x_axis20)
 
-        n = len(x_axis)
-        ptAccept=ROOT.TGraph(n, x_axis, ratio)
-        ptAccept.Draw('AC')
-        ptAccept.Write('ptAccept')
+        n20 = len(x_axis20)
+        ptAccept20=ROOT.TGraph(n20, x_axis20, ratio20)
+        ptAccept20.GetXaxis().SetTitle('Photon Pt')
+        ptAccept20.GetYaxis().SetTitle('Acceptance')
+        ptAccept20.Draw('AC')
+        ptAccept20.Write('ptAccept20')
+
+        ratio33 = []
+
+        for i in sorted(counterDictAft33.keys()):
+
+                ratio33.append(float(counterDictAft33[i])/counterDictBef33[i])
+
+        x_axis33 = []
+
+        for num in range(5, 65):
+
+                x_axis33.append(float(num))
+
+        ratio33 = array('f', ratio33)
+        x_axis33 = array('f', x_axis33)
+
+        n33 = len(x_axis33)
+        ptAccept33=ROOT.TGraph(n20, x_axis33, ratio33)
+        ptAccept33.GetXaxis().SetTitle('Photon Pt')
+        ptAccept33.GetYaxis().SetTitle('Acceptance')
+        ptAccept33.Draw('AC')
+        ptAccept33.Write('ptAccept33')
+        
+        ratioP20 = []
+
+        for i in sorted(counterDictAftP20.keys()):
+
+                ratioP20.append(float(counterDictAftP20[i])/counterDictBefP20[i])
+
+        x_axisP20 = []
+
+        for num in range(5, 65):
+
+                x_axisP20.append(float(num))
+
+        ratioP20 = array('f', ratioP20)
+        x_axisP20 = array('f', x_axisP20)
+
+        nP20 = len(x_axisP20)
+        ptAcceptP20=ROOT.TGraph(nP20, x_axisP20, ratioP20)
+        ptAcceptP20.GetXaxis().SetTitle('Photon Pt')
+        ptAcceptP20.GetYaxis().SetTitle('Acceptance')
+        ptAcceptP20.Draw('AC')
+        ptAcceptP20.Write('ptAcceptP20')
+
+        ratioP30 = []
+
+        for i in sorted(counterDictAftP30.keys()):
+
+                ratioP30.append(float(counterDictAftP30[i])/counterDictBefP30[i])
+
+        x_axisP30 = []
+
+        for num in range(5, 65):
+
+                x_axisP30.append(float(num))
+
+        ratioP30 = array('f', ratioP30)
+        x_axisP30 = array('f', x_axisP30)
+
+        nP30 = len(x_axisP30)
+        ptAcceptP30=ROOT.TGraph(nP30, x_axisP30, ratioP30)
+        ptAcceptP30.GetXaxis().SetTitle('Photon Pt')
+        ptAcceptP30.GetYaxis().SetTitle('Acceptance')
+        ptAcceptP30.Draw('AC')
+        ptAcceptP30.Write('ptAcceptP30')
+        
+        ratioDP30 = []
+
+        for i in sorted(counterDictAftDP30.keys()):
+
+                ratioDP30.append(float(counterDictAftDP30[i])/counterDictBefDP30[i])
+
+        x_axisDP30 = []
+
+        for num in range(5, 65):
+
+                x_axisDP30.append(float(num))
+
+        ratioDP30 = array('f', ratioDP30)
+        x_axisDP30 = array('f', x_axisDP30)
+
+        nDP30 = len(x_axisDP30)
+        ptAcceptDP30=ROOT.TGraph(nDP30, x_axisDP30, ratioDP30)
+        ptAcceptDP30.GetXaxis().SetTitle('Photon Pt')
+        ptAcceptDP30.GetYaxis().SetTitle('Acceptance')
+        ptAcceptDP30.Draw('AC')
+        ptAcceptDP30.Write('ptAcceptDP30')
         
         num_photons.Draw()
         photon_phi.Draw()
@@ -380,6 +585,9 @@ def readTree(inputFile):
         matchingPhotons_Pt.Draw()
         matchingPhotons_Energy.Draw()
         num_matchingPhotons.Draw()
+        recoMatchingPhotons_Pt.Draw()
+        recoMatchingPhotons_Energy.Draw()
+        recoNum_matchingPhotons.Draw()
         f.Write()
 
 if __name__ == '__main__':
