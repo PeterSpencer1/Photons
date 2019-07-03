@@ -14,9 +14,17 @@ def readTree(inputFile):
         photon_phi.GetXaxis().SetTitle('Phi')
         photon_phi.GetYaxis().SetTitle('Number of Events')
 
-        photon_pt=ROOT.TH1F('photonpt', 'Pt', 150, 0., 150.)
-        photon_pt.GetXaxis().SetTitle('Pt')
-        photon_pt.GetYaxis().SetTitle('Number of Events')
+        photon_PtTotal=ROOT.TH1F('totalphotonpt', 'Total Photon Pt', 80, 0., 80.)
+        photon_PtTotal.GetXaxis().SetTitle('Pt (GeV)')
+        photon_PtTotal.GetYaxis().SetTitle('Number of Events')
+
+        leadingPhoton_pt=ROOT.TH1F('leadingphotonpt', 'Leading Photon Pt', 80, 0., 80.)
+        leadingPhoton_pt.GetXaxis().SetTitle('Pt (GeV)')
+        leadingPhoton_pt.GetYaxis().SetTitle('Number of Events')
+
+        trailingPhoton_pt=ROOT.TH1F('trailingphotonpt', 'Trailing Photon Pt', 80, 0., 80.)
+        trailingPhoton_pt.GetXaxis().SetTitle('Pt (GeV)')
+        trailingPhoton_pt.GetYaxis().SetTitle('Number of Events')
 
         photon_eta=ROOT.TH1F('photoneta', 'Eta', 150, -3., 3.)
         photon_eta.GetXaxis().SetTitle('Eta')
@@ -203,6 +211,9 @@ def readTree(inputFile):
                 
                 matchingPhotonsPt = []
                 matchingPhotonsEnergy = []
+                matchingPhotonsPx = []
+                matchingPhotonsPy = []
+                matchingPhotonsPz = []
                 matchingPhotons = 0
                 index = []
                 
@@ -300,7 +311,9 @@ def readTree(inputFile):
 
                                 matchingPhotonsPt.append(l1photonPt[j])
                                 matchingPhotonsEnergy.append(l1photonEnergy[j])
-
+                                matchingPhotonsPx.append(l1photonPx[j])
+                                matchingPhotonsPy.append(l1photonPy[j])
+                                matchingPhotonsPz.append(l1photonPz[j])
 
                 for mEnergy in matchingPhotonsEnergy:
 
@@ -309,6 +322,24 @@ def readTree(inputFile):
                 for mPt in matchingPhotonsPt:
 
                         matchingPhotons_Pt.Fill(mPt)
+                        
+                if matchingPhotons==2:
+
+                        px = matchingPhotonsPx[0] + matchingPhotonsPx[1]
+                        py = matchingPhotonsPy[0] + matchingPhotonsPy[1]
+                        pz = matchingPhotonsPz[0] + matchingPhotonsPz[1]
+                        energy = matchingPhotonsEnergy[0] + matchingPhotonsEnergy[1]
+                        l1invariantMass = energy**2 - px**2 - py**2 - pz**2
+                        l1invariant_mass.Fill(l1invariantMass)
+
+                        if l1invariantMass < 0:
+
+                                #print(px, py, pz, energy)
+
+                        #l1etadiff = abs(l1photonEta[0] - l1photonEta[1])
+                        #l1photon_etadiff.Fill(l1etadiff)
+
+                numPhoton_L1.Fill(nPhoton_L1)
 
                 num_matchingPhotons.Fill(matchingPhotons)
                 
@@ -316,6 +347,9 @@ def readTree(inputFile):
                 recoMatchingPhotonsEnergy = []
                 recoMatchingPhotons = 0
                 recoIndex = []
+                recoMatchingPhotonsPx = []
+                recoMatchingPhotonsPy = []
+                recoMatchingPhotonsPz = []
                 
                 for o in range(numPhotons_gen):
 
@@ -365,7 +399,9 @@ def readTree(inputFile):
 
                                 recoMatchingPhotonsPt.append(photonPt[k])
                                 recoMatchingPhotonsEnergy.append(photonEnergy[k])
-
+                                recoMatchingPhotonsPx.append(photonPx[k])
+                                recoMatchingPhotonsPy.append(photonPy[k])
+                                recoMatchingPhotonsPz.append(photonPz[k])
 
                 for rmEnergy in recoMatchingPhotonsEnergy:
 
@@ -377,34 +413,21 @@ def readTree(inputFile):
 
                 recoNum_matchingPhotons.Fill(recoMatchingPhotons)
                 
-                if nPhoton==2:
+                if recoMatchingPhotons==2:
 
-                        px = photonPx[0] + photonPx[1]
-                        py = photonPy[0] + photonPy[1]
-                        pz = photonPz[0] + photonPz[1]
-                        energy = photonEnergy[0] + photonEnergy[1]
-                        invariantMass = energy**2 - px**2 - py**2 - pz**2
+                        px = recoMatchingPhotonsPx[0] + recoMatchingPhotonsPx[1]
+                        py = recoMatchingPhotonsPy[0] + recoMatchingPhotonsPy[1]
+                        pz = recoMatchingPhotonsPz[0] + recoMatchingPhotonsPz[1]
+                        energy = recoMatchingPhotonsEnergy[0] + recoMatchingPhotonsEnergy[1]
+                        invariantMass = math.sqrt(energy**2 - px**2 - py**2 - pz**2)
                         invariant_mass.Fill(invariantMass)
-                        etadifference = abs(photonEta[0] - photonEta[1])
-                        photon_etadiff.Fill(etadifference)
+                        #etadifference = abs(photonEta[0] - photonEta[1])
+                        #photon_etadiff.Fill(etadifference)
 
                 photonEnergygen = [value for value in photonEnergyg if value != 0]
                 photonPxgen = [value for value in photonPxg if value != 0]
                 photonPygen = [value for value in photonPyg if value != 0]
                 photonPzgen = [value for value in photonPzg if value != 0]
-                
-                if nPhoton_L1==2:
-
-                        px = l1photonPx[0] + l1photonPx[1]
-                        py = l1photonPy[0] + l1photonPy[1]
-                        pz = l1photonPz[0] + l1photonPz[1]
-                        energy = l1photonEnergy[0] + l1photonEnergy[1]
-                        l1invariantMass = math.sqrt(energy**2 - px**2 - py**2 - pz**2)
-                        l1invariant_mass.Fill(l1invariantMass)
-                        l1etadiff = abs(l1photonEta[0] - l1photonEta[1])
-                        l1photon_etadiff.Fill(l1etadiff)
-
-                numPhoton_L1.Fill(nPhoton_L1)
 
                 pt_lower_10 = False
 
@@ -432,14 +455,24 @@ def readTree(inputFile):
                         photon_phig.Fill(phidiff)
 
                 num_photons.Fill(nPhoton)
+                
+                if nPhoton != 0:
 
-                for Phi in photonPhi:
+                        leadingPhoton_Pt = photonPt[0]
+                        leadingPhoton_pt.Fill(leadingPhoton_Pt)
 
-                        photon_phi.Fill(Phi)
+                        if nPhoton > 1:
+
+                                trailingPhoton_Pt = photonPt[1]
+                                trailingPhoton_pt.Fill(trailingPhoton_Pt)
 
                 for Pt in photonPt:
 
-                        photon_pt.Fill(Pt)
+                        photon_PtTotal.Fill(Pt)
+                        
+                for Phi in photonPhi:
+
+                        photon_phi.Fill(Phi)
 
                 for Eta in photonEta:
 
@@ -569,7 +602,9 @@ def readTree(inputFile):
         
         num_photons.Draw()
         photon_phi.Draw()
-        photon_pt.Draw()
+        photon_PtTotal.Draw()
+        leadingPhoton_pt.Draw()
+        trailingPhoton_pt.Draw()
         photon_eta.Draw()
         invariant_mass.Draw()
         invariant_massg.Draw()
