@@ -48,6 +48,9 @@ hltPhoton33 = array('i', [0])
 hltP20H = array('i', [0])
 hltP30H = array('i', [0])
 hltDP30 = array('i', [0])
+failedPhotonPt = array('f', np.zeros(max_num, dtype=float))
+failedPhotonEnergy = array('f', np.zeros(max_num, dtype=float))
+failedPhotons = array('i', [0])
 
 # load FWlite python libraries
 from DataFormats.FWLite import Handle, Events
@@ -98,6 +101,9 @@ eventTree.Branch('hltPhoton33', hltPhoton33, 'hltPhoton33/I')
 eventTree.Branch('hltP20H', hltP20H, 'hltP20H/I')
 eventTree.Branch('hltP30H', hltP30H, 'hltP30H/I')
 eventTree.Branch('hltDP30', hltDP30, 'hltDP30/I')
+eventTree.Branch('failedPhotons', failedPhotons, 'failedPhotons/I')
+eventTree.Branch('failedPhotonPt', failedPhotonPt, 'failedPhotonPt[failedPhotons]/F')
+eventTree.Branch('failedPhotonEnergy', failedPhotonEnergy, 'failedPhotonEnergy[failedPhotons]/F')
 
 photons, photonLabel = Handle('std::vector<pat::Photon>'), 'slimmedPhotons'
 genParticles, genParticlesLabel = Handle('std::vector<reco::GenParticle>'), 'prunedGenParticles'
@@ -119,14 +125,16 @@ def writeTree(inputFile):
                 event.getByLabel(genParticlesLabel, genParticles)
                 event.getByLabel(triggerBitLabel, triggerBits)
                 event.getByLabel(photonL1Label, photonL1)
-                
+
                 numPhotons_gen[0] = 0
-                
+                nPhoton[0] = 0
+                failedPhotons[0] = 0
+
                 triggerBits_ = triggerBits.product()
                 photons_ = photons.product()
                 genParticles_ = genParticles.product()
 
-                nPhoton[0] = len(photons_)
+                #nPhoton[0] = len(photons_)
                 nParticles[0] = len(genParticles_)
 
                 names = event.object().triggerNames(triggerBits_)
@@ -184,6 +192,8 @@ def writeTree(inputFile):
 
                 for i, ph in enumerate(photons_):
 
+                        #if ph.photonID('cutBasedPhotonID-Fall17-94X-V1-medium') == 1:
+
                         photonPt[i] = ph.pt()
                         photonPhi[i] = ph.phi()
                         photonEta[i] = ph.eta()
@@ -191,6 +201,13 @@ def writeTree(inputFile):
                         photonPx[i] = ph.px()
                         photonPy[i] = ph.py()
                         photonPz[i] = ph.pz()
+                        nPhoton[0] += 1
+
+                        #else:
+
+                                #failedPhotonPt[i] = ph.pt()
+                                #failedPhotonEnergy[i] = ph.energy()
+                                #failedPhotons[0] += 1
 
                 bxVector_photon = photonL1.product()
 
