@@ -2,6 +2,54 @@ import ROOT
 import math
 from array import array
 
+def drawTriggerEff(inputFile, trigger):
+
+        f = ROOT.TFile.Open(inputFile, 'UPDATE')
+        if trigger == 'hltPhoton20':
+
+                photon_array = array('f', [0., 10., 15., 17., 18., 19., 20., 21., 22., 23., 25., 27.,  30., 40., 50., 70.])
+                triggerTitle = 'HLT_Photon20_v2'
+
+        elif trigger == 'hltPhoton33':
+
+                photon_array = array('f', [0., 10., 20., 25., 28., 30., 31., 32., 33., 34., 35., 36., 38., 41., 45., 50., 60.])
+                triggerTitle = 'HLT_Photon33_v5'
+
+        elif trigger == 'hltP20H':
+
+                photon_array = array('f', [0., 10., 15., 17., 18., 19., 20., 21., 22., 23., 25., 27.,  30., 40., 50., 70.])
+                triggerTitle = 'HLT_Photon20_HoverELoose_v10'
+
+        elif trigger == 'hltP30H':
+
+                photon_array = array('f', [0., 10., 20., 25., 27., 28., 29., 30., 31., 32., 33., 35., 37., 40., 50., 60., 80.])
+                triggerTitle = 'HLT_Photon30_HoverELoose_v10'
+
+        elif trigger == 'hltDP30':
+
+                photon_array = array('f', [0., 10., 20., 25., 27., 28., 29., 30., 31., 32., 33., 35., 37., 40., 50., 60., 80.])
+                triggerTitle = 'HLT_Diphoton30_18_R9IdL_AND_HE_AND_IsoCaloId_NoPixelVeto_v2'
+
+        photonHist = ROOT.TH1F('photonHist', 'photonHist', len(photon_array)-1, photon_array)
+
+        photonHistTrigger = ROOT.TH1F('photonHistTrigger', 'photonHistTrigger', len(photon_array)-1, photon_array)
+
+        triggerCuts = trigger + ' == 1'
+
+        f.eventTree.Draw('photonPt[0]>>photonHist')
+        f.eventTree.Draw('photonPt[0]>>photonHistTrigger', triggerCuts, '')
+
+        if ROOT.TEfficiency.CheckConsistency(photonHistTrigger, photonHist):
+
+                photonEff = ROOT.TEfficiency(photonHistTrigger, photonHist)
+                photonEff.SetTitle(triggerTitle + " Efficiency;Leading Photon Pt (GeV);Trigger Efficiency")
+                photonEff.Write('photonEff' + trigger + '_photon')
+
+                print('Efficiency graph constructed')
+
+        f.Write()
+        f.Close()
+
 def readTree(inputFile):
 
         f = ROOT.TFile.Open(inputFile,"update")
@@ -81,6 +129,7 @@ def readTree(inputFile):
         matchingPhotons_Pt=ROOT.TH1F('matchingPhotons_Pt','Pt of Matching Photons (L1 vs Gen)', 50, 0, 50.)
         matchingPhotons_Pt.GetXaxis().SetTitle('Pt')
         matchingPhotons_Pt.GetYaxis().SetTitle('Number of Events')
+        
         matchingPhotons_Energy=ROOT.TH1F('matchingPhotons_Energy','Energy of Matching Photons (L1 vs Gen)', 50, 0, 40)
         matchingPhotons_Energy.GetXaxis().SetTitle('Energy')
         matchingPhotons_Energy.GetYaxis().SetTitle('Number of Events')
@@ -129,51 +178,54 @@ def readTree(inputFile):
         min_reco.GetXaxis().SetTitle('Delta R')
         min_reco.GetYaxis().SetTitle('Number Of Events')
         
-        event_count_before = 0
-        event_count_after = 0
+        massSquared=ROOT.TH1F('masssquared', 'Single Photon Mass Squared', 50, -.001, 0.001)
+        massSquared.GetXaxis().SetTitle('Mass (GeV)')
+        massSquared.GetYaxis().SetTitle('Number of Events')
 
-        counterDictBef = {}
-        counterDictAft = {}
+        failedPhoton_Pt=ROOT.TH1F('failedphotonpt', 'Photons that failed ID cuts', 50, 0, 50)
+        failedPhoton_Pt.GetXaxis().SetTitle('Pt (GeV)')
+        failedPhoton_Pt.GetYaxis().SetTitle('Number of Events')
 
-        counterDictBef20 = {}
-        counterDictAft20 = {}
+        failedPhoton_Energy=ROOT.TH1F('failedphotonenergy', 'Photons that failed ID cuts', 50, 0, 50)
+        failedPhoton_Energy.GetXaxis().SetTitle('Energy (GeV)')
+        failedPhoton_Energy.GetYaxis().SetTitle('Number of Events')
 
-        for pt in range(5, 65):
+        delta_reco_l1=ROOT.TH1F('deltarecol1', 'Delta R (Reco vs L1)', 20, 0, 10)
+        delta_reco_l1.GetXaxis().SetTitle('Delta R')
+        delta_reco_l1.GetYaxis().SetTitle('Number of Events')
 
-                counterDictBef20[pt] = 0
-                counterDictAft20[pt] = 0
+        energySpecialRecoL1=ROOT.TH1F('energyspecialrecol1', 'Difference in Reco and L1 Energy Divided by L1 Energy', 50, -2, 3)
+        energySpecialRecoL1.GetXaxis().SetTitle('Energy Resolution')
+        energySpecialRecoL1.GetYaxis().SetTitle('Number of Events')
 
-        counterDictBef33 = {}
-        counterDictAft33 = {}
+        min_L1_reco=ROOT.TH1F('minrecol1', 'Minimum Value of R (Reco vs L1)', 40, 0, 10)
+        min_L1_reco.GetXaxis().SetTitle('Minimum Value of R')
+        min_L1_reco.GetYaxis().SetTitle('Number of Events')
 
-        for pt in range(5, 65):
+        l1recoMatchingPhotons_Energy=ROOT.TH1F('l1recomatchingphotonsenergy', 'Matching Photons Energy (L1 vs Reco)', 50, 0, 80)
+        l1recoMatchingPhotons_Energy.GetXaxis().SetTitle('Energy (GeV)')
+        l1recoMatchingPhotons_Energy.GetYaxis().SetTitle('Number of Events')
 
-                counterDictBef33[pt] = 0
-                counterDictAft33[pt] = 0
+        l1recoMatchingPhotons_Pt=ROOT.TH1F('l1recomatchingphotonspt', 'Matching Photons Pt (L1 vs Reco)', 50, 0, 75)
+        l1recoMatchingPhotons_Pt.GetXaxis().SetTitle('Pt (GeV)')
+        l1recoMatchingPhotons_Pt.GetYaxis().SetTitle('Number of Events')
 
-        counterDictBefP20 = {}
-        counterDictAftP20 = {}
+        l1recoNum_matchingPhotons=ROOT.TH1F('l1reconummatchingphotons', 'Number of Matching Photons (L1 vs Reco)', 6, 0, 6)
+        l1recoNum_matchingPhotons.GetXaxis().SetTitle('Number of Matching Photons')
+        l1recoNum_matchingPhotons.GetYaxis().SetTitle('Number of Events')
 
-        for pt in range(5, 65):
+        invariant_mass_L1_Reco=ROOT.TH1F('invariantmassl1reco', 'Invariant Mass of two Photons (Matched L1 vs Reco)', 100, 20, 40)
+        invariant_mass_L1_Reco.GetXaxis().SetTitle('Invariant Mass (GeV)')
+        invariant_mass_L1_Reco.GetYaxis().SetTitle('Number of Events')
 
-                counterDictBefP20[pt] = 0
-                counterDictAftP20[pt] = 0
+        recoGenMassResolution=ROOT.TH1F('recogenmassresolution', 'Mass Resolution (Reco vs Gen)', 30, -3, 3)
+        recoGenMassResolution.GetXaxis().SetTitle('Mass Resolution')
+        recoGenMassResolution.GetYaxis().SetTitle('Number of Events')
 
-        counterDictBefP30 = {}
-        counterDictAftP30 = {}
-
-        for pt in range(5, 65):
-
-                counterDictBefP30[pt] = 0
-                counterDictAftP30[pt] = 0
-
-        counterDictBefDP30 = {}
-        counterDictAftDP30 = {}
-
-        for pt in range(5, 65):
-
-                counterDictBefDP30[pt] = 0
-                counterDictAftDP30[pt] = 0
+        photon20l1 = 0
+        photon33l1 = 0
+        totalphotons = 0
+        hoverphotonl1 = 0
         
         for event in f.eventTree:
 
@@ -208,59 +260,33 @@ def readTree(inputFile):
                 hltP20H = event.hltP20H
                 hltP30H = event.hltP30H
                 hltDP30 = event.hltDP30
+                failedPhotonPt = event.failedPhotonPt
+                failedPhotonEnergy = event.failedPhotonEnergy
+                failedPhotons = event.failedPhotons
                 
-                matchingPhotonsPt = []
-                matchingPhotonsEnergy = []
-                matchingPhotonsPx = []
-                matchingPhotonsPy = []
-                matchingPhotonsPz = []
-                matchingPhotons = 0
-                index = []
+                totalphotons += 1
+
+                if nPhoton_L1 >= 1:
+
+                        if l1photonEnergy[0] > 15: #and abs(l1photonEta[0]) < 2.5:
+
+                                photon20l1 += 1
+
+                        if l1photonEnergy[0] > 26: #and abs(l1photonEta[0]) < 2.5:
+
+                                photon33l1 += 1
+
+                        if l1photonEnergy[0] > 10: #and abs(l1photonEta[0]) < 2.5:
+
+                                hoverphotonl1 += 1
                 
-                for pt in range(5, 65):
-
-                        if len(photonPt) != 0:
-
-                                if pt < photonPt[0] < pt+1:
-                                        counterDictBef20[pt] += 1
-                                        if hltPhoton20 == 1:
-                                                counterDictAft20[pt] += 1
-
-                for pt in range(5, 65):
-
-                        if len(photonPt) != 0:
-
-                                if pt < photonPt[0] < pt+1:
-                                        counterDictBef33[pt] += 1
-                                        if hltPhoton33 == 1:
-                                                counterDictAft33[pt] += 1
-
-                for pt in range(5, 65):
-
-                        if len(photonPt) != 0:
-
-                                if pt < photonPt[0] < pt+1:
-                                        counterDictBefP20[pt] += 1
-                                        if hltP20H == 1:
-                                                counterDictAftP20[pt] += 1
-
-                for pt in range(5, 65):
-
-                        if len(photonPt) != 0:
-
-                                if pt < photonPt[0] < pt+1:
-                                        counterDictBefP30[pt] += 1
-                                        if hltP30H == 1:
-                                                counterDictAftP30[pt] += 1
-
-                for pt in range(5, 65):
-
-                        if len(photonPt) != 0:
-
-                                if pt < photonPt[0] < pt+1:
-                                        counterDictBefDP30[pt] += 1
-                                        if hltDP30 == 1:
-                                                counterDictAftDP30[pt] += 1
+                l1genMatchingPhotonsPt = []
+                l1genMatchingPhotonsEnergy = []
+                l1genMatchingPhotonsPx = []
+                l1genMatchingPhotonsPy = []
+                l1genMatchingPhotonsPz = []
+                l1genMatchingPhotons = 0
+                l1genIndex = []
                 
                 for i in range(numPhotons_gen):
 
@@ -274,17 +300,16 @@ def readTree(inputFile):
 
                                 if deltaR < .5:
 
-                                        matchingPhotons += 1
-                                        index.append(j)
+                                        l1genMatchingPhotons += 1
+                                        l1genIndex.append(j)
                                         eta_difference = eta_diff/photonEtag[i]
                                         etaSpecial.Fill(eta_difference)
                                         phi_difference = phi_diff/photonPhig[i]
                                         phiSpecial.Fill(phi_difference)
                                         energy_difference = energy_diff/photonEnergyg[i]
                                         energySpecial.Fill(energy_difference)
-                                        #delta_r.Fill(deltaR)
                                         
-                if matchingPhotons==0:
+                if l1genMatchingPhotons==0:
 
                         for h in range(nPhoton_L1):
 
@@ -305,43 +330,42 @@ def readTree(inputFile):
 
                                         min_r.Fill(r)
                                        
-                if matchingPhotons==2:
+                if l1genMatchingPhotons==2:
 
-                        for j in index:
+                        for j in l1genIndex:
 
-                                matchingPhotonsPt.append(l1photonPt[j])
-                                matchingPhotonsEnergy.append(l1photonEnergy[j])
-                                matchingPhotonsPx.append(l1photonPx[j])
-                                matchingPhotonsPy.append(l1photonPy[j])
-                                matchingPhotonsPz.append(l1photonPz[j])
+                                l1genMatchingPhotonsPt.append(l1photonPt[j])
+                                l1genMatchingPhotonsEnergy.append(l1photonEnergy[j])
+                                l1genMatchingPhotonsPx.append(l1photonPx[j])
+                                l1genMatchingPhotonsPy.append(l1photonPy[j])
+                                l1genMatchingPhotonsPz.append(l1photonPz[j])
 
-                for mEnergy in matchingPhotonsEnergy:
+                for mEnergy in l1genMatchingPhotonsEnergy:
 
                         matchingPhotons_Energy.Fill(mEnergy)
 
-                for mPt in matchingPhotonsPt:
+                for mPt in l1genMatchingPhotonsPt:
 
                         matchingPhotons_Pt.Fill(mPt)
                         
-                if matchingPhotons==2:
+                num_matchingPhotons.Fill(l1genMatchingPhotons)
 
-                        px = matchingPhotonsPx[0] + matchingPhotonsPx[1]
-                        py = matchingPhotonsPy[0] + matchingPhotonsPy[1]
-                        pz = matchingPhotonsPz[0] + matchingPhotonsPz[1]
-                        energy = matchingPhotonsEnergy[0] + matchingPhotonsEnergy[1]
-                        l1invariantMass = energy**2 - px**2 - py**2 - pz**2
-                        l1invariant_mass.Fill(l1invariantMass)
+                if l1genMatchingPhotons==2:
 
-                        if l1invariantMass < 0:
+                        px = l1genMatchingPhotonsPx[0] + l1genMatchingPhotonsPx[1]
+                        py = l1genMatchingPhotonsPy[0] + l1genMatchingPhotonsPy[1]
+                        pz = l1genMatchingPhotonsPz[0] + l1genMatchingPhotonsPz[1]
+                        energy = l1genMatchingPhotonsEnergy[0] + l1genMatchingPhotonsEnergy[1]
+                        l1invariantMassSquared = energy**2 - px**2 - py**2 - pz**2
+
+                        if l1invariantMassSquared > 0:
+                                l1invariantMass = math.sqrt(l1invariantMassSquared)
+                                l1invariant_mass.Fill(l1invariantMass)
 
                                 #print(px, py, pz, energy)
 
                         #l1etadiff = abs(l1photonEta[0] - l1photonEta[1])
                         #l1photon_etadiff.Fill(l1etadiff)
-
-                numPhoton_L1.Fill(nPhoton_L1)
-
-                num_matchingPhotons.Fill(matchingPhotons)
                 
                 recoMatchingPhotonsPt = []
                 recoMatchingPhotonsEnergy = []
@@ -419,11 +443,40 @@ def readTree(inputFile):
                         py = recoMatchingPhotonsPy[0] + recoMatchingPhotonsPy[1]
                         pz = recoMatchingPhotonsPz[0] + recoMatchingPhotonsPz[1]
                         energy = recoMatchingPhotonsEnergy[0] + recoMatchingPhotonsEnergy[1]
-                        invariantMass = math.sqrt(energy**2 - px**2 - py**2 - pz**2)
-                        invariant_mass.Fill(invariantMass)
+                        invariantMassSquared = energy**2 - px**2 - py**2 - pz**2
+
+                        #tried to get rid of negative values, didn't work
+                        #px = recoMatchingPhotonsPx[0]
+                        #py = recoMatchingPhotonsPy[0]
+                        #pz = recoMatchingPhotonsPz[0]
+                        #pMag = math.sqrt(px**2 + py**2 +pz**2)
+                        #px2 = recoMatchingPhotonsPx[1]
+                        #py2 = recoMatchingPhotonsPy[1]
+                        #pz2 = recoMatchingPhotonsPz[1]
+                        #pMag2 = math.sqrt(px2**2 + py2**2 + pz2**2)
+                        #dotproduct = px*px2 + py*py2 + pz*pz2
+                        #energy = recoMatchingPhotonsEnergy[0]
+                        #energy2 = recoMatchingPhotonsEnergy[1]
+                        #invariantmass = math.sqrt(2*((energy*energy2) - dotproduct))
+                        #invariant_mass.Fill(invariantmass)
+
+                        if invariantMassSquared > 0:
+
+                                invariantMass = math.sqrt(invariantMassSquared)
+                                invariant_mass.Fill(invariantMass)
                         #etadifference = abs(photonEta[0] - photonEta[1])
                         #photon_etadiff.Fill(etadifference)
 
+                for i in range(len(recoMatchingPhotonsPx)):
+
+                        px = recoMatchingPhotonsPx[i]
+                        py = recoMatchingPhotonsPy[i]
+                        pz = recoMatchingPhotonsPz[i]
+                        energy = recoMatchingPhotonsEnergy[i]
+                        singleMass = energy**2 - px**2 - py**2 - pz**2
+                        massSquared.Fill(singleMass)
+                        
+                        
                 photonEnergygen = [value for value in photonEnergyg if value != 0]
                 photonPxgen = [value for value in photonPxg if value != 0]
                 photonPygen = [value for value in photonPyg if value != 0]
@@ -455,11 +508,93 @@ def readTree(inputFile):
                         photon_phig.Fill(phidiff)
 
                 num_photons.Fill(nPhoton)
+                numPhoton_L1.Fill(nPhoton_L1)
+
+                l1recoMatchingPhotonsPt = []
+                l1recoMatchingPhotonsEnergy = []
+                l1recoMatchingPhotons = 0
+                l1recoIndex = []
+                l1recoMatchingPhotonsPx = []
+                l1recoMatchingPhotonsPy = []
+                l1recoMatchingPhotonsPz = []
+
+                for o in range(nPhoton_L1):
+
+                        for k in range(nPhoton):
+
+                                eta_diff = photonEta[k] - l1photonEta[o]
+                                phi_diff = photonPhi[k] - l1photonPhi[o]
+                                deltaR = math.sqrt(eta_diff**2 + phi_diff**2)
+                                energy_diff = photonEnergy[k] - l1photonEnergy[o]
+                                delta_reco_l1.Fill(deltaR)
+
+                                if deltaR < .5:
+
+                                        l1recoMatchingPhotons += 1
+                                        l1recoIndex.append(k)
+                                        energy_difference = energy_diff/l1photonEnergy[o]
+                                        energySpecialRecoL1.Fill(energy_difference)
+
+                if l1recoMatchingPhotons==0:
+
+                        for h in range(nPhoton):
+
+                                delta_Reco = []
+
+                                for u in range(nPhoton_L1):
+
+                                        if l1photonPt[u] < 2: continue
+
+                                        eta_diff = photonEta[h] - l1photonEta[u]
+                                        phi_diff = photonPhi[h] - l1photonPhi[u]
+                                        deltaReco = math.sqrt(eta_diff**2 + phi_diff**2)
+                                        delta_Reco.append(deltaR)
+
+                                if len(delta_Reco) != 0:
+
+                                        r = min(delta_Reco)
+
+                                        min_L1_reco.Fill(r)
+
+                if l1recoMatchingPhotons==2:
+
+                        for k in l1recoIndex:
+
+                                l1recoMatchingPhotonsPt.append(photonPt[k])
+                                l1recoMatchingPhotonsEnergy.append(photonEnergy[k])
+                                l1recoMatchingPhotonsPx.append(photonPx[k])
+                                l1recoMatchingPhotonsPy.append(photonPy[k])
+                                l1recoMatchingPhotonsPz.append(photonPz[k])
+
+                for rmEnergy in l1recoMatchingPhotonsEnergy:
+
+                        l1recoMatchingPhotons_Energy.Fill(rmEnergy)
+
+                for rmPt in l1recoMatchingPhotonsPt:
+
+                        l1recoMatchingPhotons_Pt.Fill(rmPt)
+
+                l1recoNum_matchingPhotons.Fill(l1recoMatchingPhotons)
                 
+                if l1recoMatchingPhotons==2:
+
+                        px = l1recoMatchingPhotonsPx[0] + l1recoMatchingPhotonsPx[1]
+                        py = l1recoMatchingPhotonsPy[0] + l1recoMatchingPhotonsPy[1]
+                        pz = l1recoMatchingPhotonsPz[0] + l1recoMatchingPhotonsPz[1]
+                        energy = l1recoMatchingPhotonsEnergy[0] + l1recoMatchingPhotonsEnergy[1]
+                        invariantMass_L1_RecoS = energy**2 - px**2 - py**2 - pz**2
+
+                        if invariantMass_L1_RecoS > 0:
+
+                                invariantMass_L1_Reco = math.sqrt(energy**2 - px**2 - py**2 - pz**2)
+                                invariant_mass_L1_Reco.Fill(invariantMass_L1_Reco)
+                                
                 if nPhoton != 0:
 
-                        leadingPhoton_Pt = photonPt[0]
-                        leadingPhoton_pt.Fill(leadingPhoton_Pt)
+                        if hltPhoton20 == 1:
+
+                                leadingPhoton_Pt = photonPt[0]
+                                leadingPhoton_pt.Fill(leadingPhoton_Pt)
 
                         if nPhoton > 1:
 
@@ -489,117 +624,17 @@ def readTree(inputFile):
                 for EtaL1 in l1photonEta:
 
                         l1photon_eta.Fill(EtaL1)
-         
-        ratio20 = []
+                        
+                if failedPhotons != 0:
 
-        for i in sorted(counterDictAft20.keys()):
+                        for i in range(failedPhotons):
 
-                ratio20.append(float(counterDictAft20[i])/counterDictBef20[i])
+                                leadingfailedPt = failedPhotonPt[i]
+                                leadingfailedEnergy = failedPhotonEnergy[i]
 
-        x_axis20 = []
-
-        for num in range(5, 65):
-
-                x_axis20.append(float(num))
-
-        ratio20 = array('f', ratio20)
-        x_axis20 = array('f', x_axis20)
-
-        n20 = len(x_axis20)
-        ptAccept20=ROOT.TGraph(n20, x_axis20, ratio20)
-        ptAccept20.GetXaxis().SetTitle('Photon Pt')
-        ptAccept20.GetYaxis().SetTitle('Acceptance')
-        ptAccept20.Draw('AC')
-        ptAccept20.Write('ptAccept20')
-
-        ratio33 = []
-
-        for i in sorted(counterDictAft33.keys()):
-
-                ratio33.append(float(counterDictAft33[i])/counterDictBef33[i])
-
-        x_axis33 = []
-
-        for num in range(5, 65):
-
-                x_axis33.append(float(num))
-
-        ratio33 = array('f', ratio33)
-        x_axis33 = array('f', x_axis33)
-
-        n33 = len(x_axis33)
-        ptAccept33=ROOT.TGraph(n20, x_axis33, ratio33)
-        ptAccept33.GetXaxis().SetTitle('Photon Pt')
-        ptAccept33.GetYaxis().SetTitle('Acceptance')
-        ptAccept33.Draw('AC')
-        ptAccept33.Write('ptAccept33')
-        
-        ratioP20 = []
-
-        for i in sorted(counterDictAftP20.keys()):
-
-                ratioP20.append(float(counterDictAftP20[i])/counterDictBefP20[i])
-
-        x_axisP20 = []
-
-        for num in range(5, 65):
-
-                x_axisP20.append(float(num))
-
-        ratioP20 = array('f', ratioP20)
-        x_axisP20 = array('f', x_axisP20)
-
-        nP20 = len(x_axisP20)
-        ptAcceptP20=ROOT.TGraph(nP20, x_axisP20, ratioP20)
-        ptAcceptP20.GetXaxis().SetTitle('Photon Pt')
-        ptAcceptP20.GetYaxis().SetTitle('Acceptance')
-        ptAcceptP20.Draw('AC')
-        ptAcceptP20.Write('ptAcceptP20')
-
-        ratioP30 = []
-
-        for i in sorted(counterDictAftP30.keys()):
-
-                ratioP30.append(float(counterDictAftP30[i])/counterDictBefP30[i])
-
-        x_axisP30 = []
-
-        for num in range(5, 65):
-
-                x_axisP30.append(float(num))
-
-        ratioP30 = array('f', ratioP30)
-        x_axisP30 = array('f', x_axisP30)
-
-        nP30 = len(x_axisP30)
-        ptAcceptP30=ROOT.TGraph(nP30, x_axisP30, ratioP30)
-        ptAcceptP30.GetXaxis().SetTitle('Photon Pt')
-        ptAcceptP30.GetYaxis().SetTitle('Acceptance')
-        ptAcceptP30.Draw('AC')
-        ptAcceptP30.Write('ptAcceptP30')
-        
-        ratioDP30 = []
-
-        for i in sorted(counterDictAftDP30.keys()):
-
-                ratioDP30.append(float(counterDictAftDP30[i])/counterDictBefDP30[i])
-
-        x_axisDP30 = []
-
-        for num in range(5, 65):
-
-                x_axisDP30.append(float(num))
-
-        ratioDP30 = array('f', ratioDP30)
-        x_axisDP30 = array('f', x_axisDP30)
-
-        nDP30 = len(x_axisDP30)
-        ptAcceptDP30=ROOT.TGraph(nDP30, x_axisDP30, ratioDP30)
-        ptAcceptDP30.GetXaxis().SetTitle('Photon Pt')
-        ptAcceptDP30.GetYaxis().SetTitle('Acceptance')
-        ptAcceptDP30.Draw('AC')
-        ptAcceptDP30.Write('ptAcceptDP30')
-        
+                                failedPhoton_Pt.Fill(leadingfailedPt)
+                                failedPhoton_Energy.Fill(leadingfailedEnergy)
+                                
         num_photons.Draw()
         photon_phi.Draw()
         photon_PtTotal.Draw()
@@ -623,9 +658,32 @@ def readTree(inputFile):
         recoMatchingPhotons_Pt.Draw()
         recoMatchingPhotons_Energy.Draw()
         recoNum_matchingPhotons.Draw()
+        failedPhoton_Pt.Draw()
+        failedPhoton_Energy.Draw()
         f.Write()
+        photon20percent = float(photon20l1)/totalphotons
+        photon33percent = float(photon33l1)/totalphotons
+        photonhoverpercent = float(hoverphotonl1)/totalphotons
+        print('Total amount of events: %d' % totalphotons)
+        print('Events that passed 20 L1 trigger: %d' % photon20l1)
+        print('Ratio for L1 20: %f' % photon20percent)
+        print('Events that passes 33 L1 trigger: %d' % photon33l1)
+        print('Ratio for L1 33: %f' % photon33percent)
+        print('Events that passed hover triggers: %d' % hoverphotonl1)
+        print('Ratio for L1 hover: %f' % photonhoverpercent)
 
 if __name__ == '__main__':
 
         inputFile = 'Photongraphs.root'
         readTree(inputFile)
+        #Plots trigger graphs
+        #trigger = 'hltPhoton20'
+        #drawTriggerEff(inputFile, trigger)
+        #trigger2 = 'hltPhoton33'
+        #drawTriggerEff(inputFile, trigger2)
+        #trigger3 = 'hltP20H'
+        #drawTriggerEff(inputFile, trigger3)
+        #trigger4 = 'hltP30H'
+        #drawTriggerEff(inputFile, trigger4)
+        #trigger5 = 'hltDP30'
+        #drawTriggerEff(inputFile, trigger5)
