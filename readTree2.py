@@ -243,7 +243,23 @@ def readTree(inputFile):
                 failedPhotonPt = event.failedPhotonPt
                 failedPhotonEnergy = event.failedPhotonEnergy
                 failedPhotons = event.failedPhotons
+                hltInvariantMass = event.hltInvariantMass
+                genInvariantMass = event.genInvariantMass
+                recoInvariantMass = event.recoInvariantMass
+                l1InvariantMass = event.l1InvariantMass
 
+                reco_invariant_mass.Fill(recoInvariantMass)
+                l1_invariant_mass.Fill(l1InvariantMass)
+                gen_invariant_mass.Fill(genInvariantMass)
+                
+                 if genInvariantMass != 0.:
+
+                        if recoInvariantMass != 0.:
+
+                                recomingen = recoInvariantMass - genInvariantMass
+                                genrecoresolution = recomingen/genInvariantMass
+                                recoGenMassResolution.Fill(genrecoresolution)
+                                
                 totalphotons += 1
                 
                 if nPhoton_L1 >= 1:
@@ -309,8 +325,8 @@ def readTree(inputFile):
                         gen_gg_mass = vectorSumMass(event.photonPxg[genIndex[0]], event.photonPyg[genIndex[0]], event.photonPzg[genIndex[0]], event.photonPxg[genIndex[1]], event.photonPyg[genIndex[1]], event.photonPzg[genIndex[1]])
                         #make a diphoton mass from l1
                         l1_gg_mass = vectorSumMass(event.l1photonPx[l1Index[0]], event.l1photonPy[l1Index[0]], event.l1photonPz[l1Index[0]], event.l1photonPx[l1Index[1]], event.l1photonPy[l1Index[1]], event.l1photonPz[l1Index[1]])
-                        gen_invariant_mass.Fill(gen_gg_mass)
-                        l1_invariant_mass.Fill(l1_gg_mass)
+                        #gen_invariant_mass.Fill(gen_gg_mass)
+                        #l1_invariant_mass.Fill(l1_gg_mass)
                         l1GenMassResolution.Fill((l1_gg_mass-gen_gg_mass)/gen_gg_mass)
 
                 for mEnergy in l1genMatchingPhotonsEnergy:
@@ -375,7 +391,7 @@ def readTree(inputFile):
                         gen_gg_mass = vectorSumMass(event.photonPxg[genIndex[0]], event.photonPyg[genIndex[0]], event.photonPzg[genIndex[0]], event.photonPxg[genIndex[1]], event.photonPyg[genIndex[1]], event.photonPzg[genIndex[1]])
                         #make a diphoton mass from l1
                         reco_gg_mass = vectorSumMass(event.photonPx[recoIndex[0]], event.photonPy[recoIndex[0]], event.photonPz[recoIndex[0]], event.photonPx[recoIndex[1]], event.photonPy[recoIndex[1]], event.photonPz[recoIndex[1]])
-                        reco_invariant_mass.Fill(reco_gg_mass)
+                        #reco_invariant_mass.Fill(reco_gg_mass)
                         recoGenMassResolution.Fill((reco_gg_mass-gen_gg_mass)/gen_gg_mass)
                         
                 for rmEnergy in recoMatchingPhotonsEnergy:
