@@ -234,6 +234,10 @@ def readTree(inputFile):
         recoGenMassResolution.GetXaxis().SetTitle('Mass Resolution')
         recoGenMassResolution.GetYaxis().SetTitle('Number of Events')
 
+        l1GenMassResolution=ROOT.TH1F('l1genmassresolution', 'Mass Resolution (L1 vs Gen)', 100, -2, 2)
+        l1GenMassResolution.GetXaxis().SetTitle('Mass Resolution')
+        l1GenMassResolution.GetYaxis().SetTitle('Number of Events')
+        
         photon20l1 = 0
         photon33l1 = 0
         totalphotons = 0
