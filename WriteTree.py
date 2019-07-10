@@ -52,10 +52,10 @@ failedPhotonPt = array('f', np.zeros(max_num, dtype=float))
 failedPhotonEnergy = array('f', np.zeros(max_num, dtype=float))
 failedPhotons = array('i', [0])
 hltPhotons = array('i', [0])
-hltInvariantMass = array('f', np.zeros(max_num, dtype=float))
-recoInvariantMass = array('f', np.zeros(max_num, dtype=float))
-l1InvariantMass = array('f', np.zeros(max_num, dtype=float))
-genInvariantMass = array('f', np.zeros(max_num, dtype=float))
+hltInvariantMass = array('f', [0.])
+recoInvariantMass = array('f', [0.])
+l1InvariantMass = array('f', [0.])
+genInvariantMass = array('f', [0.])
 
 # load FWlite python libraries
 from DataFormats.FWLite import Handle, Events
@@ -105,10 +105,10 @@ eventTree.Branch('failedPhotons', failedPhotons, 'failedPhotons/I')
 eventTree.Branch('failedPhotonPt', failedPhotonPt, 'failedPhotonPt[failedPhotons]/F')
 eventTree.Branch('failedPhotonEnergy', failedPhotonEnergy, 'failedPhotonEnergy[failedPhotons]/F')
 eventTree.Branch('hltPhotons', hltPhotons, 'hltPhotons/I')
-eventTree.Branch('hltInvariantMass', hltInvariantMass, 'hltInvariantMass[hltPhotons]/F')
-eventTree.Branch('recoInvariantMass', recoInvariantMass, 'recoInvariantMass[nPhoton]/F')
-eventTree.Branch('l1InvariantMass', l1InvariantMass, 'l1InvariantMass[nPhoton_L1]/F')
-eventTree.Branch('genInvariantMass', genInvariantMass, 'genInvariantMass[numPhotons_gen]/F')
+eventTree.Branch('hltInvariantMass', hltInvariantMass, 'hltInvariantMass/F')
+eventTree.Branch('recoInvariantMass', recoInvariantMass, 'recoInvariantMass/F')
+eventTree.Branch('l1InvariantMass', l1InvariantMass, 'l1InvariantMass/F')
+eventTree.Branch('genInvariantMass', genInvariantMass, 'genInvariantMass/F')
 
 photons, photonLabel = Handle('std::vector<pat::Photon>'), 'slimmedPhotons'
 genParticles, genParticlesLabel = Handle('std::vector<reco::GenParticle>'), 'prunedGenParticles'
@@ -186,7 +186,7 @@ def writeTree(inputFile):
                                         #hltP20H[0] = 1
                                 #else:
                                         #hltP20H[0] = 0
-
+                        
                         #if names.triggerNames()[i]=='HLT_Photon30_HoverELoose_v10':
                                 #if triggerBits_.accept(i):
                                         #hltP30H[0] = 1
@@ -234,7 +234,7 @@ def writeTree(inputFile):
                         genInvariantMass[0] = invariantMass
 
                 for i, ph in enumerate(photons_):
-
+                        
                         #if ph.photonID('cutBasedPhotonID-Fall17-94X-V1-medium') == 1:
 
                         photonPt[i] = ph.pt()
@@ -282,7 +282,7 @@ def writeTree(inputFile):
                         l1photonPx[i] = photon.px()
                         l1photonPy[i] = photon.py()
                         l1photonPz[i] = photon.pz()
-
+                        
                 if nPhoton_L1[0] == 2 and len(l1Collection) == 2:
 
                         fourPBoth = l1Collection[0].p4() + l1Collection[1].p4()
