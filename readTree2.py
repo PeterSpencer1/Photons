@@ -21,7 +21,7 @@ def vectorSumMass(px1, py1, pz1, px2, py2, pz2):
         E2 = math.sqrt(px2*px2 + py2*py2 + pz2*pz2);
         cosTheta = (px1*px2 + py1*py2 + pz1*pz2)/ (E1*E2);
         return math.sqrt(2*E1*E2*(1-cosTheta));
-        
+
 def drawTriggerEff(inputFile, trigger):
 
         f = ROOT.TFile.Open(inputFile, 'UPDATE')
@@ -66,10 +66,10 @@ def drawTriggerEff(inputFile, trigger):
                 photonEff.Write('photonEff' + trigger + '_photon')
 
                 print('Efficiency graph constructed')
-                
+
         f.Write()
         f.Close()
-        
+
 def readTree(inputFile):
 
         f = ROOT.TFile.Open(inputFile,"update")
@@ -113,7 +113,7 @@ def readTree(inputFile):
         l1photon_phi=ROOT.TH1F('l1photonphi', 'Phi', 50, -3., 3.)
         l1photon_phi.GetXaxis().SetTitle('Phi (L1)')
         l1photon_phi.GetYaxis().SetTitle('Number of Events')
-        
+
         l1photon_pt=ROOT.TH1F('l1photonpt', 'Pt', 50, 0., 75.)
         l1photon_pt.GetXaxis().SetTitle('Pt (L1)')
         l1photon_pt.GetYaxis().SetTitle('Number of Events')
@@ -137,7 +137,7 @@ def readTree(inputFile):
         num_matchingPhotons=ROOT.TH1F('nummatchingPhotons', 'Number of Matching Photons (L1 vs Gen)', 10, 0, 10)
         num_matchingPhotons.GetXaxis().SetTitle('Number of Matching Photons')
         num_matchingPhotons.GetYaxis().SetTitle('Number Of Events')
-
+        
         recoMatchingPhotons_Pt=ROOT.TH1F('recoMatchingPhotons_Pt','Pt of Matching Photons (Reco vs Gen)', 50, 0, 75.)
         recoMatchingPhotons_Pt.GetXaxis().SetTitle('Pt')
         recoMatchingPhotons_Pt.GetYaxis().SetTitle('Number of Events')
@@ -157,7 +157,7 @@ def readTree(inputFile):
         min_reco=ROOT.TH1F('minreco', 'Lowest Value of Delta R (Reco)', 40, 0, 10)
         min_reco.GetXaxis().SetTitle('Delta R')
         min_reco.GetYaxis().SetTitle('Number Of Events')
-        
+
         massSquared=ROOT.TH1F('masssquared', 'Single Photon Mass Squared', 50, -.001, 0.001)
         massSquared.GetXaxis().SetTitle('Mass (GeV)')
         massSquared.GetYaxis().SetTitle('Number of Events')
@@ -185,7 +185,7 @@ def readTree(inputFile):
         l1recoNum_matchingPhotons=ROOT.TH1F('l1reconummatchingphotons', 'Number of Matching Photons (L1 vs Reco)', 6, 0, 6)
         l1recoNum_matchingPhotons.GetXaxis().SetTitle('Number of Matching Photons')
         l1recoNum_matchingPhotons.GetYaxis().SetTitle('Number of Events')
-
+        
         recoGenMassResolution=ROOT.TH1F('recogenmassresolution', 'Mass Resolution (Reco vs Gen)', 100, -1, 1)
         recoGenMassResolution.GetXaxis().SetTitle('Mass Resolution (Reco vs Gen)')
         recoGenMassResolution.GetYaxis().SetTitle('Number of Events')
@@ -201,12 +201,12 @@ def readTree(inputFile):
         gen_invariant_mass=ROOT.TH1F('gen_invariantmass', 'Invariant Mass Of 2 Gen Photons', 100, 29, 31)
         gen_invariant_mass.GetXaxis().SetTitle('Invariant Mass at Gen (GeV)')
         gen_invariant_mass.GetYaxis().SetTitle('Number of Events')
-        
-        l1_invariant_mass=ROOT.TH1F('l1_invariantmass', 'Invariant Mass Of 2 L1 Photons', 40, 10, 50)
+
+        l1_invariant_mass=ROOT.TH1F('l1_invariantmass', 'Invariant Mass Of 2 L1 Photons', 40, 0, 50)
         l1_invariant_mass.GetXaxis().SetTitle('Invariant Mass at L1 (GeV)')
         l1_invariant_mass.GetYaxis().SetTitle('Number of Events')
 
-        reco_invariant_mass=ROOT.TH1F('reco_invariantmass', 'Invariant Mass of 2 Reco Photons', 50, 10, 50)
+        reco_invariant_mass=ROOT.TH1F('reco_invariantmass', 'Invariant Mass of 2 Reco Photons', 50, 0, 50)
         reco_invariant_mass.GetXaxis().SetTitle('Invariant Mass at Reco (GeV)')
         reco_invariant_mass.GetYaxis().SetTitle('Number of Events')
 
@@ -251,19 +251,35 @@ def readTree(inputFile):
                 reco_invariant_mass.Fill(recoInvariantMass)
                 l1_invariant_mass.Fill(l1InvariantMass)
                 gen_invariant_mass.Fill(genInvariantMass)
-                
-                 if genInvariantMass != 0.:
+
+                if genInvariantMass != 0.:
 
                         if recoInvariantMass != 0.:
 
                                 recomingen = recoInvariantMass - genInvariantMass
                                 genrecoresolution = recomingen/genInvariantMass
                                 recoGenMassResolution.Fill(genrecoresolution)
-                                
-                totalphotons += 1
-                
-                if nPhoton_L1 >= 1:
 
+                if genInvariantMass != 0:
+
+                        if l1InvariantMass != 0:
+
+                                l1mingen = l1InvariantMass - genInvariantMass
+                                genl1resolution = l1mingen/genInvariantMass
+                                l1GenMassResolution.Fill(genl1resolution)
+
+                if l1InvariantMass != 0:
+
+                        if recoInvariantMass != 0:
+
+                                l1minreco = l1InvariantMass - recoInvariantMass
+                                recol1resolution = l1minreco/recoInvariantMass
+                                l1recoMassResolution.Fill(recol1resolution)
+
+                totalphotons += 1
+
+                if nPhoton_L1 >= 1:
+                        
                         if l1photonEnergy[0] > 15: #and abs(l1photonEta[0]) < 2.5:
 
                                 photon20l1 += 1
@@ -306,8 +322,8 @@ def readTree(inputFile):
                                 delta_R = []
 
                                 for u in range(numPhotons_gen):
-                                
-                                  if photonPtg[u] < 2: continue
+
+                                        if photonPtg[u] < 2: continue
 
                                         eta_difference = l1photonEta[h] - photonEtag[u]
                                         phi_diff = l1photonPhi[h] - photonPhig[u]
@@ -327,7 +343,7 @@ def readTree(inputFile):
                         l1_gg_mass = vectorSumMass(event.l1photonPx[l1Index[0]], event.l1photonPy[l1Index[0]], event.l1photonPz[l1Index[0]], event.l1photonPx[l1Index[1]], event.l1photonPy[l1Index[1]], event.l1photonPz[l1Index[1]])
                         #gen_invariant_mass.Fill(gen_gg_mass)
                         #l1_invariant_mass.Fill(l1_gg_mass)
-                        l1GenMassResolution.Fill((l1_gg_mass-gen_gg_mass)/gen_gg_mass)
+                        #l1GenMassResolution.Fill((l1_gg_mass-gen_gg_mass)/gen_gg_mass)
 
                 for mEnergy in l1genMatchingPhotonsEnergy:
 
@@ -349,20 +365,18 @@ def readTree(inputFile):
                         if event.particleStatus[o] == 21 and event.mothers[o] == 2212:
 
                                 continue
-                                
+
                         for k in range(nPhoton):
 
                                 reco_deltaR = deltaR(event.photonEtag[o], event.photonEta[k], event.photonPhig[o], event.photonPhi[k])
 
                                 if reco_deltaR < .3:
-
+                                        
                                         if o not in genIndex and k not in recoIndex:
 
                                                 recogenMatchingPhotons += 1
                                                 genIndex.append(o)
                                                 recoIndex.append(k)
-
-                print(recogenMatchingPhotons)
 
                 if recogenMatchingPhotons==0:
 
@@ -392,8 +406,8 @@ def readTree(inputFile):
                         #make a diphoton mass from l1
                         reco_gg_mass = vectorSumMass(event.photonPx[recoIndex[0]], event.photonPy[recoIndex[0]], event.photonPz[recoIndex[0]], event.photonPx[recoIndex[1]], event.photonPy[recoIndex[1]], event.photonPz[recoIndex[1]])
                         #reco_invariant_mass.Fill(reco_gg_mass)
-                        recoGenMassResolution.Fill((reco_gg_mass-gen_gg_mass)/gen_gg_mass)
-                        
+                        #recoGenMassResolution.Fill((reco_gg_mass-gen_gg_mass)/gen_gg_mass)
+
                 for rmEnergy in recoMatchingPhotonsEnergy:
 
                         recoMatchingPhotons_Energy.Fill(rmEnergy)
@@ -403,7 +417,6 @@ def readTree(inputFile):
                         recoMatchingPhotons_Pt.Fill(rmPt)
 
                 recoNum_matchingPhotons.Fill(recogenMatchingPhotons)
-
                 photonEnergygen = [value for value in photonEnergyg if value != 0]
 
                 #pt_lower_10 = False
@@ -464,7 +477,7 @@ def readTree(inputFile):
 
                         reco_gg_mass = vectorSumMass(event.photonPx[recoIndex[0]], event.photonPy[recoIndex[0]], event.photonPz[recoIndex[0]], event.photonPx[recoIndex[1]], event.photonPy[recoIndex[1]], event.photonPz[recoIndex[1]])
                         l1_gg_mass = vectorSumMass(event.l1photonPx[l1Index[0]], event.l1photonPy[l1Index[0]], event.l1photonPz[l1Index[0]], event.l1photonPx[l1Index[1]], event.l1photonPy[l1Index[1]], event.l1photonPz[l1Index[1]])
-                        l1recoMassResolution.Fill((l1_gg_mass-reco_gg_mass)/reco_gg_mass)
+                        #l1recoMassResolution.Fill((l1_gg_mass-reco_gg_mass)/reco_gg_mass)
 
                 for rmEnergy in l1recoMatchingPhotonsEnergy:
 
@@ -475,7 +488,7 @@ def readTree(inputFile):
                         l1recoMatchingPhotons_Pt.Fill(rmPt)
 
                 l1recoNum_matchingPhotons.Fill(l1recoMatchingPhotons)
-                
+
                 if nPhoton != 0:
 
                         if nPhoton > 0:
@@ -495,7 +508,7 @@ def readTree(inputFile):
                 for Phi in photonPhi:
 
                         photon_phi.Fill(Phi)
-
+                        
                 for Eta in photonEta:
 
                         photon_eta.Fill(Eta)
@@ -553,7 +566,7 @@ def readTree(inputFile):
         #print('Ratio for L1 33: %f' % photon33percent)
         #print('Events that passed hover triggers: %d' % hoverphotonl1)
         #print('Ratio for L1 hover: %f' % photonhoverpercent)
-        
+
 if __name__ == '__main__':
 
         inputFile = 'Photongraphs.root'
@@ -568,10 +581,3 @@ if __name__ == '__main__':
         #drawTriggerEff(inputFile, trigger4)
         #trigger5 = 'hltDP30'
         #drawTriggerEff(inputFile, trigger5)
-                                                                                                                                                                               554,18-25     Bot
-
-
-
-
-
-
