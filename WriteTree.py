@@ -51,6 +51,11 @@ hltDP30 = array('i', [0])
 failedPhotonPt = array('f', np.zeros(max_num, dtype=float))
 failedPhotonEnergy = array('f', np.zeros(max_num, dtype=float))
 failedPhotons = array('i', [0])
+hltPhotons = array('i', [0])
+hltInvariantMass = array('f', np.zeros(max_num, dtype=float))
+recoInvariantMass = array('f', np.zeros(max_num, dtype=float))
+l1InvariantMass = array('f', np.zeros(max_num, dtype=float))
+genInvariantMass = array('f', np.zeros(max_num, dtype=float))
 
 # load FWlite python libraries
 from DataFormats.FWLite import Handle, Events
@@ -75,11 +80,6 @@ eventTree.Branch('photonEnergy', photonEnergy, 'photonEnergy[nPhoton]/F')
 eventTree.Branch('photonPx', photonPx, 'photonPx[nPhoton]/F')
 eventTree.Branch('photonPy', photonPy, 'photonPy[nPhoton]/F')
 eventTree.Branch('photonPz', photonPz, 'photonPz[nPhoton]/F')
-eventTree.Branch('photonEnergyg', photonEnergyg, 'photonEnergyg[nParticles]/F')
-eventTree.Branch('photonPxg', photonPxg, 'photonPxg[nParticles]/F')
-eventTree.Branch('photonPyg', photonPyg, 'photonPyg[nParticles]/F')
-eventTree.Branch('photonPzg', photonPzg, 'photonPzg[nParticles]/F')
-eventTree.Branch('numPhotons_gen', numPhotons_gen, 'numPhotons_gen/I')
 eventTree.Branch('numPhotons_gen', numPhotons_gen, 'numPhotons_gen/I')
 eventTree.Branch('photonEnergyg', photonEnergyg, 'photonEnergyg[numPhotons_gen]/F')
 eventTree.Branch('photonPxg', photonPxg, 'photonPxg[numPhotons_gen]/F')
@@ -104,12 +104,17 @@ eventTree.Branch('hltDP30', hltDP30, 'hltDP30/I')
 eventTree.Branch('failedPhotons', failedPhotons, 'failedPhotons/I')
 eventTree.Branch('failedPhotonPt', failedPhotonPt, 'failedPhotonPt[failedPhotons]/F')
 eventTree.Branch('failedPhotonEnergy', failedPhotonEnergy, 'failedPhotonEnergy[failedPhotons]/F')
+eventTree.Branch('hltPhotons', hltPhotons, 'hltPhotons/I')
+eventTree.Branch('hltInvariantMass', hltInvariantMass, 'hltInvariantMass[hltPhotons]/F')
+eventTree.Branch('recoInvariantMass', recoInvariantMass, 'recoInvariantMass[nPhoton]/F')
+eventTree.Branch('l1InvariantMass', l1InvariantMass, 'l1InvariantMass[nPhoton_L1]/F')
+eventTree.Branch('genInvariantMass', genInvariantMass, 'genInvariantMass[numPhotons_gen]/F')
 
 photons, photonLabel = Handle('std::vector<pat::Photon>'), 'slimmedPhotons'
 genParticles, genParticlesLabel = Handle('std::vector<reco::GenParticle>'), 'prunedGenParticles'
 triggerBits, triggerBitLabel = Handle("edm::TriggerResults"), ("TriggerResults","","HLT")
 photonL1, photonL1Label = Handle("BXVector<l1t::EGamma>"), "caloStage2Digis:EGamma"
-
+triggerObjects, triggerObjectLabel  = Handle("std::vector<pat::TriggerObjectStandAlone>"), "slimmedPatTrigger"
 
 def writeTree(inputFile):
 
@@ -125,6 +130,29 @@ def writeTree(inputFile):
                 event.getByLabel(genParticlesLabel, genParticles)
                 event.getByLabel(triggerBitLabel, triggerBits)
                 event.getByLabel(photonL1Label, photonL1)
+                event.getByLabel(triggerObjectLabel, triggerObjects)
+
+                hltPhotons[0] = 0
+                hltCollection = []
+                recoCollection = []
+                l1Collection = []
+                genCollection = []
+
+                for j,to in enumerate(triggerObjects.product()):
+                        to.unpackNamesAndLabels(event.object(), triggerBits.product());
+
+                        if to.collection() == 'hltGtStage2Digis:EGamma:HLT':
+
+                                if to.pt() > 5:
+
+                                        hltCollection.append(to)
+                                        hltPhotons[0] += 1
+
+                if hltPhotons[0] == 2:
+
+                        fourPBoth = hltCollection[0].p4() + hltCollection[1].p4()
+                        invariantMass = fourPBoth.M()
+                        hltInvariantMass[0] = invariantMass
 
                 numPhotons_gen[0] = 0
                 nPhoton[0] = 0
@@ -147,30 +175,32 @@ def writeTree(inputFile):
                                 else:
                                         hltPhoton20[0] = 0
 
-                        if names.triggerNames()[i]=='HLT_Photon33_v5':
-                                if triggerBits_.accept(i):
-                                        hltPhoton33[0] = 1
-                                else:
-                                        hltPhoton33[0] = 0
+                        #if names.triggerNames()[i]=='HLT_Photon33_v5':
+                                #if triggerBits_.accept(i):
+                                        #hltPhoton33[0] = 1
+                                #else:
+                                        #hltPhoton33[0] = 0
 
-                        if names.triggerNames()[i]=='HLT_Photon20_HoverELoose_v10':
-                                if triggerBits_.accept(i):
-                                        hltP20H[0] = 1
-                                else:
-                                        hltP20H[0] = 0
+                        #if names.triggerNames()[i]=='HLT_Photon20_HoverELoose_v10':
+                                #if triggerBits_.accept(i):
+                                        #hltP20H[0] = 1
+                                #else:
+                                        #hltP20H[0] = 0
 
-                        if names.triggerNames()[i]=='HLT_Photon30_HoverELoose_v10':
-                                if triggerBits_.accept(i):
-                                        hltP30H[0] = 1
-                                else:
-                                        hltP30H[0] = 0
+                        #if names.triggerNames()[i]=='HLT_Photon30_HoverELoose_v10':
+                                #if triggerBits_.accept(i):
+                                        #hltP30H[0] = 1
+                                #else:
+                                        #hltP30H[0] = 0
 
-                        if names.triggerNames()[i]=='HLT_Diphoton30_18_R9IdL_AND_HE_AND_IsoCaloId_NoPixelVeto_v2':
-                                if triggerBits_.accept(i):
-                                        hltDP30[0] = 1
-                                else:
-                                        hltDP30[0] = 0
-                                        
+                        #if names.triggerNames()[i]=='HLT_Diphoton30_18_R9IdL_AND_HE_AND_IsoCaloId_NoPixelVeto_v2':
+                                #if triggerBits_.accept(i):
+                                        #hltDP30[0] = 1
+                                #else:
+                                        #hltDP30[0] = 0
+
+                j = 0
+
                 for i, prt in enumerate(genParticles_):
 
                         pdgId[i] = prt.pdgId()
@@ -179,16 +209,29 @@ def writeTree(inputFile):
 
                         if prt.pdgId()==22:
 
-                                photonEnergyg[i] = prt.energy()
-                                photonPxg[i] = prt.px()
-                                photonPyg[i] = prt.py()
-                                photonPzg[i] = prt.pz()
+                                photonEnergyg[j] = prt.energy()
+                                photonPxg[j] = prt.px()
+                                photonPyg[j] = prt.py()
+                                photonPzg[j] = prt.pz()
+                                photonPhig[j] = prt.phi()
+                                photonEtag[j] = prt.eta()
+                                photonPtg[j] = prt.pt()
+                                genCollection.append(prt)
                                 numPhotons_gen[0] += 1
+
+                                j += 1
                                 #print('in if loop')
-                                
+
+
                         if i > 1:
 
                                 mothers[i] = prt.mother(0).pdgId()
+
+                if numPhotons_gen[0] == 2 and len(genCollection) == 2:
+
+                        fourPBoth = genCollection[0].p4() + genCollection[1].p4()
+                        invariantMass = fourPBoth.M()
+                        genInvariantMass[0] = invariantMass
 
                 for i, ph in enumerate(photons_):
 
@@ -201,6 +244,7 @@ def writeTree(inputFile):
                         photonPx[i] = ph.px()
                         photonPy[i] = ph.py()
                         photonPz[i] = ph.pz()
+                        recoCollection.append(ph)
                         nPhoton[0] += 1
 
                         #else:
@@ -209,11 +253,23 @@ def writeTree(inputFile):
                                 #failedPhotonEnergy[i] = ph.energy()
                                 #failedPhotons[0] += 1
 
+                if nPhoton[0] == 2 and len(recoCollection) == 2:
+
+                        fourPBoth = recoCollection[0].p4(0) + recoCollection[1].p4(0)
+                        invariantMass = fourPBoth.M()
+                        recoInvariantMass[0] = invariantMass
+
                 bxVector_photon = photonL1.product()
 
                 bx=0
 
-                nPhoton_L1[0] = bxVector_photon.size(bx)
+                for i, ph in enumerate(bxVector_photon):
+
+                        if ph.pt() > 5:
+
+                                l1Collection.append(ph)
+
+                                nPhoton_L1[0] = bxVector_photon.size(bx)
 
                 for i in range(bxVector_photon.size(bx)):
 
@@ -226,16 +282,22 @@ def writeTree(inputFile):
                         l1photonPx[i] = photon.px()
                         l1photonPy[i] = photon.py()
                         l1photonPz[i] = photon.pz()
-                        
+
+                if nPhoton_L1[0] == 2 and len(l1Collection) == 2:
+
+                        fourPBoth = l1Collection[0].p4() + l1Collection[1].p4()
+                        invariantMass = fourPBoth.M()
+                        l1InvariantMass[0] = invariantMass
+
                 eventTree.Fill()
 
-        print('Number of trigger paths: %d' % triggerBits.product().size())
+        #print('Number of trigger paths: %d' % triggerBits.product().size())
 
-        names = event.object().triggerNames(triggerBits.product())
+        #names = event.object().triggerNames(triggerBits.product())
 
-        for i in range(triggerBits.product().size()):
+        #for i in range(triggerBits.product().size()):
 
-                print('Trigger ', names.triggerNames()[i], ('PASS' if triggerBits.product().accept(i) else 'FAIL'))
+                #print('Trigger ', names.triggerNames()[i], ('PASS' if triggerBits.product().accept(i) else 'FAIL')) 
 
 #/cms/data/store/user/dsperka/lowmassdiphoton/ggh_m10
 
@@ -251,3 +313,4 @@ if __name__ == '__main__':
 
         output.Write()
         output.Close()
+
