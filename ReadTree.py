@@ -162,6 +162,18 @@ def readTree(inputFile):
         energySpecial.GetXaxis().SetTitle('Energy Difference')
         energySpecial.GetYaxis().SetTitle('Number Of Events')
 
+        etaSpecialReco=ROOT.TH1F('etaSpecialReco', 'Difference in Eta Divided By Gen', 50, -2, 2)
+        etaSpecialReco.GetXaxis().SetTitle('Eta Resolution')
+        etaSpecialReco.GetYaxis().SetTitle('Number Of Events')
+
+        phiSpecialReco=ROOT.TH1F('phiSpecialReco', 'Difference in Phi Divided By Gen', 50, -2, 2)
+        phiSpecialReco.GetXaxis().SetTitle('Phi Resolution')
+        phiSpecialReco.GetYaxis().SetTitle('Number Of Events')
+
+        energySpecialReco=ROOT.TH1F('energySpecialReco', 'Difference in Energy Divided By Gen', 50, -2, 3)
+        energySpecialReco.GetXaxis().SetTitle('Energy Resolution')
+        energySpecialReco.GetYaxis().SetTitle('Number Of Events')
+        
         delta_r=ROOT.TH1F('deltar', 'Delta R', 20, 0, 10)
         delta_r.GetXaxis().SetTitle('Delta R')
         delta_r.GetYaxis().SetTitle('Number Of Events')
